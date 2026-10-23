@@ -52,8 +52,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: env.BRICKSTORM_KEYSTORE_B64 != ''
         with:
-          name: BrickStorm-1.3.0-release
-          path: out/release/BrickStorm-1.3.0.apk
+          name: BrickStorm-1.4.0-release
+          path: out/release/BrickStorm-1.4.0.apk
       - uses: actions/upload-artifact@v4
         with:
           name: release-verification

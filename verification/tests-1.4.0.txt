@@ -1,0 +1,2 @@
+PASS: 520040 focused checks; 58 selectable layouts, 50 full-field routes + eight mosaics; bricks 964..3026; repeated yellow bonus x40 preserves exact count beyond trajectory budget.
+PASS: all 58 real level cards are clickable across 4 pages; shared renderer screenshots exported for internal visual inspection.

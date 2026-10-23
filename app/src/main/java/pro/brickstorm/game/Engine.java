@@ -1,14 +1,15 @@
 package pro.brickstorm.game;
 import java.util.ArrayList;
 import java.util.Random;
+import java.math.BigInteger;
 
 /** Pure Java physics. No Android dependencies; fixed 240 Hz integration and spatial grid. */
 public final class Engine {
     public enum State { READY,PLAYING,PAUSED,WON,LOST }
     public interface Events { void sound(int kind); void completed(int level,int stars,int score); }
-    public static final int MAX_BALLS=96,MAX_PARTICLES=420;
+    public static final int MAX_BALLS=512,MAX_PARTICLES=420;
     public static final float PADDLE_Y=700,FLOOR=750,RADIUS=2.5f,SHIELD_Y=735;
-    public static final class Ball { public float x,y,vx,vy,quiet=0; public final float[] tx=new float[5],ty=new float[5]; public Ball(float x,float y,float vx,float vy){this.x=x;this.y=y;this.vx=vx;this.vy=vy;for(int i=0;i<5;i++){tx[i]=x;ty[i]=y;}} }
+    public static final class Ball { public float x,y,vx,vy,quiet=0; public BigInteger count=BigInteger.ONE; public final float[] tx=new float[5],ty=new float[5]; public Ball(float x,float y,float vx,float vy){this.x=x;this.y=y;this.vx=vx;this.vy=vy;for(int i=0;i<5;i++){tx[i]=x;ty[i]=y;}} }
     public static final class Drop {public float x,y;public int kind;Drop(float x,float y,int k){this.x=x;this.y=y;kind=k;}}
     public static final class Particle {public float x,y,vx,vy,life,total;public int color;Particle(float x,float y,float vx,float vy,int c,float t){this.x=x;this.y=y;this.vx=vx;this.vy=vy;color=c;life=total=t;}}
     public final ArrayList<Ball> balls=new ArrayList<>();
@@ -19,14 +20,14 @@ public final class Engine {
     public String notice=""; public float noticeTime=0;
     public Events events; private State pausedFrom=State.PLAYING; private Random rng; private float accumulator=0;private float lastX=200,lastY=330;
     public Engine(Events e){events=e;load(1);}
-    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();particles.clear();rng=new Random(9137L*n);state=State.READY;paddle=target=Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL;width=level.paddleWidth;lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(paddle,PADDLE_Y-8,0,0));}
+    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();particles.clear();rng=new Random(9137L*n);state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(paddle,PADDLE_Y-8,0,0));}
     public void launch(){
         if(state!=State.READY)return;state=State.PLAYING;
         float gate=Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL;
         float angle=(float)Math.atan2(gate-paddle,PADDLE_Y-Levels.BOTTOM+12);
-        if(Math.abs(angle)<.06f)angle=.06f;
+        if(Math.abs(angle)<.06f)angle=angle<0?-.06f:.06f;
         Ball b=balls.get(0);b.vx=(float)Math.sin(angle)*level.speed;b.vy=-(float)Math.cos(angle)*level.speed;
-        if(level.number==1&&broken==0){balls.add(new Ball(paddle,PADDLE_Y-8,-level.speed*.045f,-level.speed*.99899f));balls.add(new Ball(paddle,PADDLE_Y-8,0,-level.speed));}
+        if(level.number==1&&broken==0){for(float offset:new float[]{-.035f,.035f})balls.add(new Ball(paddle,PADDLE_Y-8,(float)Math.sin(angle+offset)*level.speed,-(float)Math.cos(angle+offset)*level.speed));}
         notice="Войди в проход и выбирай угол отскока";noticeTime=3;events.sound(0);
     }
     public void togglePause(){if(state==State.PLAYING||state==State.READY){pausedFrom=state;state=State.PAUSED;}else if(state==State.PAUSED)state=pausedFrom;}
@@ -79,7 +80,7 @@ public final class Engine {
             b.x+=dx*h.t+h.nx*.025f;b.y+=dy*h.t+h.ny*.025f;left*=1-h.t;
             if(h.paddle){float f=clamp((b.x-paddle)/(width/2),-.96f,.96f),a=f*1.12f;b.vx=(float)Math.sin(a)*level.speed;b.vy=-(float)Math.cos(a)*level.speed;if(Math.abs(b.vx)<level.speed*.09f){b.vx=(f<0?-1:1)*level.speed*.09f;b.vy=-(float)Math.sqrt(level.speed*level.speed-b.vx*b.vx);}b.quiet=0;events.sound(1);}
             else{if(h.nx!=0)b.vx=-b.vx;if(h.ny!=0)b.vy=-b.vy;}
-            if(h.cell>=0){boolean brick=cells[h.cell]>0;hit(h.cell);if(brick)b.quiet=0;}
+            if(h.cell>=0){boolean brick=cells[h.cell]>0;int damage=b.count.compareTo(BigInteger.ONE)>0?2:1;for(int strike=0;strike<damage&&cells[h.cell]>0;strike++)hit(h.cell);if(brick)b.quiet=0;}
             // Free a rare repeating axis-aligned orbit only after prolonged wall-only travel.
             if(b.quiet>9){float angle=(float)Math.atan2(b.vy,b.vx)+.09f;float speed=(float)Math.hypot(b.vx,b.vy);b.vx=(float)Math.cos(angle)*speed;b.vy=(float)Math.sin(angle)*speed;b.quiet=0;}
 
@@ -107,7 +108,7 @@ public final class Engine {
     public void power(int kind){
         switch(kind){
             case 0:split(3);notice="+3 ШАРА";break;
-            case 1:multiplyFlying();notice="ВСЕ ШАРЫ ×3";break;
+            case 1:multiplyFlying();notice="ВСЕ ШАРЫ ×3 · "+ballCountText();break;
             case 2:wideTime=16;notice="ШИРОКАЯ ПЛАТФОРМА";break;
             case 3:slowTime=12;notice="ЗАМЕДЛЕНИЕ";break;
             case 4:shieldTime=6;notice="НИЖНЯЯ СТЕНА · 6 СЕК";break;
@@ -115,16 +116,31 @@ public final class Engine {
         }
         noticeTime=2;events.sound(3);
     }
+    /** Preserve exact swarm size beyond the independent trajectory budget. No pickup is discarded. */
     private void multiplyFlying(){
         int original=balls.size();
-        // Snapshot size: children never multiply again during this pickup. Each original gets a turn.
-        for(int side=0;side<2;side++)for(int i=0;i<original&&balls.size()<MAX_BALLS;i++){
-            Ball source=balls.get(i);float a=side==0?-.24f:.24f;
-            float vx=source.vx*(float)Math.cos(a)-source.vy*(float)Math.sin(a),vy=source.vx*(float)Math.sin(a)+source.vy*(float)Math.cos(a);
-            balls.add(new Ball(source.x,source.y,vx,vy));
+        for(int i=0;i<original;i++){
+            Ball source=balls.get(i);BigInteger total=source.count.multiply(BigInteger.valueOf(3));
+            int copies=Math.min(3,1+MAX_BALLS-balls.size());
+            BigInteger[] share=total.divideAndRemainder(BigInteger.valueOf(copies));
+            source.count=share[0].add(share[1].signum()>0?BigInteger.ONE:BigInteger.ZERO);
+            for(int j=1;j<copies;j++){
+                float a=j==1?-.24f:.24f;
+                float vx=source.vx*(float)Math.cos(a)-source.vy*(float)Math.sin(a),vy=source.vx*(float)Math.sin(a)+source.vy*(float)Math.cos(a);
+                Ball child=new Ball(source.x,source.y,vx,vy);child.count=share[0].add(share[1].intValue()>j?BigInteger.ONE:BigInteger.ZERO);balls.add(child);
+            }
         }
     }
-    private void split(int count){if(balls.isEmpty())return;float sx=paddle,sy=PADDLE_Y-12;for(int i=0;i<count&&balls.size()<MAX_BALLS;i++){float angle=(rng.nextFloat()-.5f)*2.2f;balls.add(new Ball(sx,sy,(float)Math.sin(angle)*level.speed,-(float)Math.cos(angle)*level.speed));}}
+    public BigInteger totalBalls(){BigInteger total=BigInteger.ZERO;for(Ball b:balls)total=total.add(b.count);return total;}
+    public boolean hasGroups(){for(Ball b:balls)if(b.count.compareTo(BigInteger.ONE)>0)return true;return false;}
+    public String ballCountText(){String value=totalBalls().toString();if(value.length()<=6)return value;return value.charAt(0)+","+value.substring(1,3)+"e"+(value.length()-1);}
+    private void split(int count){
+        if(balls.isEmpty())return;float sx=paddle,sy=PADDLE_Y-12;
+        for(int i=0;i<count;i++){
+            if(balls.size()>=MAX_BALLS){Ball group=balls.get(i%balls.size());group.count=group.count.add(BigInteger.ONE);continue;}
+            float angle=(rng.nextFloat()-.5f)*2.2f;balls.add(new Ball(sx,sy,(float)Math.sin(angle)*level.speed,-(float)Math.cos(angle)*level.speed));
+        }
+    }
     private void spark(float x,float y,int c,int count){for(int i=0;i<count&&particles.size()<MAX_PARTICLES;i++){float a=rng.nextFloat()*6.28f,s=30+rng.nextFloat()*110;particles.add(new Particle(x,y,(float)Math.cos(a)*s,(float)Math.sin(a)*s,c,.3f+rng.nextFloat()*.3f));}}
     private void win(){if(state==State.WON)return;state=State.WON;int stars=lives==3&&elapsed<level.targetSeconds?3:lives>=2?2:1;events.completed(level.number,stars,score);events.sound(5);}
     public int stars(){return lives==3&&elapsed<level.targetSeconds?3:lives>=2?2:1;}

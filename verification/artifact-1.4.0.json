@@ -1,0 +1,17 @@
+{
+  "apk": "BrickStorm-1.4.0.apk",
+  "bytes": 2343793,
+  "sha256": "c54eeb920e4b4e0d905fbf39b90eaf690d40105e8425b89ff713b714da8f4631",
+  "applicationId": "pro.brickstorm.game",
+  "versionName": "1.4.0",
+  "versionCode": 7,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "routeLevels": 50,
+  "artLevels": 8,
+  "levels": 58,
+  "independentTrajectoryBudget": 512,
+  "swarmCounts": "exact BigInteger, every yellow pickup triples all trajectories and groups",
+  "physicalDeviceTested": false,
+  "fullPlaythrough": false
+}

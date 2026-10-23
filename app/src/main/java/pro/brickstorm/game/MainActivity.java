@@ -79,6 +79,8 @@ public final class MainActivity extends Activity {
                 }else if(hp>0){pixel.setColor(e.level.colors[i]);boardCanvas.drawRect(x+.35f,y+.35f,x+Levels.CELL-.35f,y+Levels.CELL-.35f,pixel);
                     pixel.setColor(0x80ffffff);boardCanvas.drawRect(x+.55f,y+.4f,x+Levels.CELL-.55f,y+1.05f,pixel);
                     pixel.setColor(0x40203450);boardCanvas.drawRect(x+.4f,y+Levels.CELL-1.05f,x+Levels.CELL-.4f,y+Levels.CELL-.35f,pixel);
+                    pixel.setColor(0x50ffffff);boardCanvas.drawRect(x+.4f,y+.5f,x+.85f,y+Levels.CELL-.6f,pixel);
+                    pixel.setColor(0x50203450);boardCanvas.drawRect(x+Levels.CELL-.85f,y+.8f,x+Levels.CELL-.35f,y+Levels.CELL-.4f,pixel);
                     if(hp>1){pixel.setColor(0xffeef5ff);boardCanvas.drawRect(x+2,y+2,x+3.5f,y+3.5f,pixel);}}
                 previous[i]=hp;
             }

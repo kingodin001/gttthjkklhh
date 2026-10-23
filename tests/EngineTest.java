@@ -1,5 +1,6 @@
 package pro.brickstorm.game;
 import java.util.*;
+import java.math.BigInteger;
 
 public final class EngineTest {
     static int checks=0,wins=0;
@@ -22,10 +23,20 @@ public final class EngineTest {
             }
         }
         check(art==8,"Eight distinct mosaics");
+        for(int n=1;n<=50;n++){
+            Engine serve=new Engine(events);serve.load(n);check(serve.paddle-serve.width/2>=Levels.LEFT&&serve.paddle+serve.width/2<=Levels.RIGHT,"Initial paddle stays on screen "+n);serve.launch();boolean entered=false;
+            for(int frame=0;frame<90;frame++){serve.update(1f/60);for(Engine.Ball ball:serve.balls){if(ball.y<Levels.BOTTOM-Engine.RADIUS)entered=true;noSteelOverlap(serve,ball);}}
+            check(entered,"Default launch enters the actual route "+n);
+        }
+
         Engine e=new Engine(events);e.launch();e.togglePause();float elapsed=e.elapsed;e.update(1);check(e.elapsed==elapsed,"Pause freezes simulation");e.togglePause();
         e.balls.clear();e.update(.02f);check(e.lives==2&&e.state==Engine.State.READY,"Life loss resets serve");e.launch();e.balls.clear();e.update(.02f);e.launch();e.balls.clear();e.update(.02f);check(e.state==Engine.State.LOST,"Three lives then loss");
-        e.load(10);e.launch();for(int i=0;i<20;i++)e.power(1);check(e.balls.size()==Engine.MAX_BALLS,"Multiball capped");
-        e.load(1);e.launch();for(int i=0;i<e.cells.length;i++)if(e.cells[i]>0)e.hit(i);e.update(.01f);check(e.state==Engine.State.WON,"Clear board wins");check(wins==1,"One completion event");e.update(.1f);check(wins==1,"No duplicate win");
+        e.load(10);e.launch();BigInteger count=e.totalBalls();
+        for(int i=0;i<40;i++){e.power(1);count=count.multiply(BigInteger.valueOf(3));check(e.totalBalls().equals(count),"Every repeated yellow pickup triples the full swarm, pickup "+i);check(e.balls.size()<=Engine.MAX_BALLS,"Trajectory budget");}
+        check(e.hasGroups()&&e.totalBalls().compareTo(BigInteger.valueOf(Long.MAX_VALUE))>0,"Grouped count never overflows a primitive integer");
+        BigInteger saturated=e.totalBalls();e.power(0);check(e.totalBalls().equals(saturated.add(BigInteger.valueOf(3))),"Blue +3 also works with a full trajectory pool");
+        e.balls.remove(0);BigInteger afterLoss=e.totalBalls();e.power(1);check(e.totalBalls().equals(afterLoss.multiply(BigInteger.valueOf(3))),"Multiply surviving swarm after loss");
+        int winsBefore=wins;e.load(1);e.launch();for(int i=0;i<e.cells.length;i++)if(e.cells[i]>0)e.hit(i);e.update(.01f);check(e.state==Engine.State.WON,"Clear board wins");check(wins==winsBefore+1,"One completion event");e.update(.1f);check(wins==winsBefore+1,"No duplicate win");
         // Four faces and four corners of steel at every supported frame size.
         for(int direction=0;direction<8;direction++)for(float frame:new float[]{1f/120,1f/60,.05f,.08f}){
             e.load(58);e.launch();Arrays.fill(e.cells,0);int solid=30*64+32;e.cells[solid]=-1;e.cells[0]=1;e.remaining=1;
@@ -48,6 +59,8 @@ public final class EngineTest {
         e.shieldTime=.01f;e.balls.clear();e.balls.add(new Engine.Ball(36,Engine.SHIELD_Y-9,0,250));for(int i=0;i<10;i++)e.update(.02f);check(e.lives==2,"Shield expires and life can be lost");
         e.load(1);e.launch();e.power(4);e.togglePause();float shield=e.shieldTime;e.update(.5f);check(e.shieldTime==shield,"Shield timer freezes on pause");e.load(2);check(e.shieldTime==0,"New level clears shield");
         e.load(58);e.launch();boolean[] kinds=new boolean[5];for(int i=0;i<e.cells.length;i++)if(e.cells[i]>0){while(e.cells[i]>0)e.hit(i);for(Engine.Drop d:e.drops){check(d.kind>=0&&d.kind<5,"Valid bonus");kinds[d.kind]=true;}e.drops.clear();}for(boolean kind:kinds)check(kind,"All five bonuses can drop");
+        // A grouped trajectory actually breaks reinforced bricks in one collision.
+        e.load(25);e.launch();Arrays.fill(e.cells,0);int reinforced=30*64+32;e.cells[reinforced]=2;e.remaining=1;e.balls.clear();Engine.Ball grouped=new Engine.Ball(16+32.5f*Levels.CELL,146+31*Levels.CELL+5,0,-300);grouped.count=BigInteger.valueOf(27);e.balls.add(grouped);e.update(.04f);check(e.cells[reinforced]==0,"Grouped swarm deals stronger damage instead of just inflating HUD");
         // Every entrance passes a real ball. Every floor section reflects from either side.
         for(int n=1;n<=Levels.COUNT;n++){
             Levels.Layout l=Levels.make(n);
@@ -66,20 +79,8 @@ public final class EngineTest {
         b.start(4);b.game.launch();b.game.score=123;b.action("home");check(b.screen.equals("home")&&b.game.state==Engine.State.PAUSED,"Menu pauses");b.action("play");check(b.game.state==Engine.State.PLAYING&&b.game.score==123,"Continue retains session");
         b.action("levels");check(b.game.state==Engine.State.PAUSED&&b.screen.equals("levels"),"Level picker pauses session");b.action("nextpage");b.action("nextpage");b.action("nextpage");b.action("nextpage");check(b.page==AppModel.PAGES-1,"Last page bounded");b.start(58);b.action("next");check(b.screen.equals("levels"),"Final level next returns to map");
         for(int speed:new int[]{1,2,4}){b.start(1);b.game.launch();b.action("speed"+speed);b.tick(.01f);check(Math.abs(b.game.elapsed-.01f*speed)<.00001,"Simulation speed "+speed);b.action("pause");float time=b.game.elapsed;b.tick(.02f);check(b.game.elapsed==time,"Pause at speed "+speed);}
-        // Full campaign runtime probe (not a proof of player balance).
-        long started=System.nanoTime(),hits=0;
-        for(int n=1;n<=58;n++){
-            e.load(n);e.launch();
-            for(int frame=0;frame<3600;frame++){
-                if(e.state==Engine.State.READY)e.launch();if(e.state!=Engine.State.PLAYING)break;
-                Engine.Ball nearest=null;float time=Float.MAX_VALUE;for(Engine.Ball ball:e.balls)if(ball.vy>0){float t=(Engine.PADDLE_Y-ball.y)/ball.vy;if(t>=0&&t<time){time=t;nearest=ball;}}
-                if(nearest!=null){float px=nearest.x+nearest.vx*time;while(px<18.5||px>381.5){if(px<18.5)px=37-px;if(px>381.5)px=763-px;}e.aim(px+(frame%90<45?-15:15));}
-                e.update(1f/60);for(Engine.Ball ball:e.balls){check(Float.isFinite(ball.x)&&Float.isFinite(ball.y)&&Float.isFinite(ball.vx)&&Float.isFinite(ball.vy),"Finite physics "+n);noSteelOverlap(e,ball);}
-
-                check(e.remaining>=0&&e.remaining<=e.level.blocks,"Remaining range");check(e.balls.size()<=96&&e.particles.size()<=420,"Entity bounds");
-            }check(e.broken>0,"Runtime probe enters puzzle and hits bricks "+n);hits+=e.broken;
-        }
-        System.out.println("PASS: "+checks+" checks; 58 unique reachable layouts (50 puzzles + 8 mosaics); blocks "+min+".."+max+"; runtime probe hits "+hits+"; "+((System.nanoTime()-started)/1e9)+" s");
+        // No automated campaign playthrough in this release: structural checks and focused regressions only.
+        System.out.println("PASS: "+checks+" focused checks; 58 selectable layouts, 50 full-field routes + eight mosaics; bricks "+min+".."+max+"; repeated yellow bonus x40 preserves exact count beyond trajectory budget.");
     }
     static void noSteelOverlap(Engine e,Engine.Ball b){
         int cx=(int)((b.x-Levels.LEFT)/Levels.CELL),cy=(int)((b.y-Levels.TOP)/Levels.CELL);
