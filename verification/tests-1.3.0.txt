@@ -1,0 +1,2 @@
+PASS: 3005720 checks; 58 unique reachable layouts (50 puzzles + 8 mosaics); blocks 306..2498; runtime probe hits 19402; 0.976530542 s
+PASS: all 58 real level cards are clickable across 4 pages; shared renderer screenshots exported for internal visual inspection.

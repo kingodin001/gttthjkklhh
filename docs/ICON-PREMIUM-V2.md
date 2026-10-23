@@ -1,0 +1,9 @@
+# Premium icon v2
+
+Tool: built-in ImageGen.
+Project asset: rustore/icon-premium-v2.png.
+Original image preserved without editing. This asset has not yet been installed as the APK launcher icon or resized into the store export.
+
+## Final prompt
+
+Use case: stylized-concept. Asset type: finished professional square mobile game app icon for an original premium brick-breaker game called Brick Storm; image only, no lettering. Create one exceptional polished 1024x1024 icon, full bleed opaque background. A bold compact sculptural arrangement of 9 large beveled luminous jewel bricks in cyan, turquoise, warm gold and coral, forming a clean staggered arcade brick wall in the upper half; one brilliant ivory pearl ball punching through the lower center brick with a sweeping cyan-and-gold upward trajectory from a short luxurious metal-and-cyan paddle in the lower third. The recognizable ball, brick wall and paddle must be very large and readable when shrunk to 48px. Restrained impact shards, only 4-6 broad fragments, no tiny clutter. Expensive polished 3D game art, beautifully controlled highlights, satin metallic paddle, thick glossy ceramic glass bricks, exquisite bevels, cinematic studio lighting and realistic ambient occlusion. Cohesive rich sapphire blue gradient background, illuminated turquoise center behind ball, gold accents, excellent contrast and sophisticated clean composition. Orthographic-like front-facing camera with subtle depth, balanced centered silhouette, safe central 80 percent for Android icon cropping. Entire square filled with background including every corner. No surrounding rounded-square container, no outer frame, no white margins, no writing, no letters, no numbers, no brands, no watermark, no phones or mockups. This must look like a top-tier professionally art-directed arcade game store icon, not a screenshot.

@@ -1,0 +1,29 @@
+package pro.brickstorm.game;
+
+/** Fifty authored ricochet puzzles and eight playable brick mosaics. */
+public final class Levels {
+    public static final int COUNT=58, COLS=64, ROWS=68;
+    public static final float LEFT=16, TOP=146, CELL=5.75f, RIGHT=384, BOTTOM=TOP+ROWS*CELL;
+    private static final Layout[] CACHE=new Layout[COUNT];
+    public static final int[] PALETTE={0xffff705b,0xffffb344,0xffffe16b,0xff75d8bc,0xff42d5e4,0xff7998ef,0xffbfa1ff,0xfff695c5,0xffecf1fa,0xff7494b7,0xffb7e767,0xffe4ba70,0xffa8dffa,0xffed8a9b,0xff7bc8d5,0xffd6beec};
+    public static final class Layout {
+        public final int number; public final int[] cells,colors,gates; public final int blocks;
+        public final int gateStart,gateEnd; public final float speed,paddleWidth; public final int targetSeconds;
+        Layout(int n,int[] c,int[] col,int count){number=n;cells=c;colors=col;blocks=count;gates=LevelData.GATES[n-1].clone();gateStart=gates[0];gateEnd=gates[1];speed=190+(n-1)*2.3f;paddleWidth=144-(n-1)*1.05f;targetSeconds=240+(n-1)*5;}
+        public String title(){return LevelData.TITLE[number-1];}
+        public String hint(){return LevelData.HINT[number-1];}
+        public String family(){return LevelData.FAMILY[number-1];}
+        public boolean artistic(){return family().startsWith("art:");}
+        public String difficulty(){return number<=8?"ПЕРВЫЕ ОТСКОКИ":number<=20?"СРЕДНИЙ":number<=35?"ВЫШЕ СРЕДНЕГО":number<=48?"СЛОЖНЫЙ":"МАСТЕР";}
+    }
+    public static Layout make(int n){
+        if(n<1||n>COUNT)throw new IllegalArgumentException("Level must be 1.."+COUNT);
+        if(CACHE[n-1]!=null)return CACHE[n-1];
+        String data=LevelData.CELLS[n-1];int[] cells=new int[COLS*ROWS],colors=new int[cells.length];int count=0;
+        for(int i=0;i<cells.length;i++){char c=data.charAt(i);if(c=='#'){cells[i]=-1;colors[i]=0xffa8bfd2;}else if(c!='.'){boolean strong=c>='A'&&c<='P';int color=strong?c-'A':c-'a';cells[i]=strong?2:1;colors[i]=PALETTE[color];count++;}}
+        return CACHE[n-1]=new Layout(n,cells,colors,count);
+    }
+    public static int gateStart(int n){return LevelData.GATES[n-1][0];}
+    public static int gateEnd(int n){return LevelData.GATES[n-1][1];}
+    private Levels(){}
+}
