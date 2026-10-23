@@ -10,7 +10,7 @@ public final class RenderCheck implements Painter {
     public void line(float x,float y,float x2,float y2,int c,float w){color(c);g.setStroke(new BasicStroke(w));g.draw(new Line2D.Float(x,y,x2,y2));}
     public void text(String s,float x,float y,float size,int c,boolean bold,boolean centered){color(c);g.setFont(new Font("DejaVu Sans",bold?Font.BOLD:Font.PLAIN,1).deriveFont(size));if(centered)x-=g.getFontMetrics().stringWidth(s)/2f;g.drawString(s,x,y);}
     public void artwork(){int crop=(int)(art.getHeight()*400f/820f),left=(art.getWidth()-crop)/2;g.drawImage(art,0,0,400,820,left,0,left+crop,art.getHeight(),null);}
-    public void board(Engine e){for(int i=0;i<e.cells.length;i++){
+    public void board(Engine e){for(int i=0;i<67*64;i++){
         float x=16+i%64*Levels.CELL,y=146+i/64*Levels.CELL;int hp=e.cells[i];
         if(hp<0){rect(x,y,Levels.CELL,Levels.CELL,0xffa9bfce,0);line(x,y+.6f,x+Levels.CELL,y+.6f,0xffdceaf1,.8f);}
         else if(hp>0){rect(x+.35f,y+.35f,Levels.CELL-.7f,Levels.CELL-.7f,e.level.colors[i],0);rect(x+.55f,y+.4f,Levels.CELL-1.1f,.65f,0x80ffffff,0);if(hp>1)rect(x+2,y+2,1.5f,1.5f,0xffeef5ff,0);}

@@ -60,37 +60,39 @@ public final class GameRenderer {
         header("Настройки","Сделай шторм своим.");
         text("ЗВУК И ЭФФЕКТЫ",24,158,11,CYAN,true);
         button(24,185,352,64,"Звук                         "+(app.sound?"ВКЛ":"ВЫКЛ"),"sound",false);
-        button(24,261,352,64,"Следы и частицы      "+(app.effects?"ВКЛ":"ВЫКЛ"),"effects",false);
+        button(24,261,352,64,"Следы шара      "+(app.effects?"ВКЛ":"ВЫКЛ"),"effects",false);
         text("КАК ИГРАТЬ",24,384,11,CYAN,true);
         String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Все уровни открыты. Скорость: ×1 / ×2 / ×4.","Большой рой объединяется в усиленные группы."};
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
         p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · 58 уровней",42,697,12,WHITE,false);
-        center("Брикс Шторм  ·  1.4.0",200,795,11,MUTED,false);
+        center("Брикс Шторм  ·  1.5.0",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format("%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,e.level.title().length()>20?15:18,WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");
         text("СЧЁТ",18,101,9,MUTED,true);text(String.format("%,d",e.score).replace(',',' '),18,124,21,WHITE,true);
-        center("РАЗРУШЕНО "+Math.round(e.progress()*100)+"%",211,105,10,MUTED,true);p.rect(150,116,122,4,EDGE,2);p.rect(150,116,Math.max(1,e.progress()*122),4,LIME,2);
+        center("РАЗРУШЕНО",211,101,9,MUTED,true);center(Math.round(e.progress()*100)+"%",211,124,20,WHITE,true);
         text("ПОПЫТКИ",314,101,9,MUTED,true);for(int i=0;i<3;i++)p.circle(328+i*21,119,5,i<e.lives?0xffff8f9a:EDGE);
         p.rect(10,141,380,398,0x55203a50,8);
         p.rect(16,146,368,391,0xff163b58,0);p.line(14,146,14,537,0xff83afc4,2);p.line(386,146,386,537,0xff83afc4,2);p.line(16,144,384,144,0xff83afc4,2);p.board(e);
+        for(int floor=0;floor<e.level.floorSegments.length;floor+=2){
+            float x=e.level.floorSegments[floor],w=e.level.floorSegments[floor+1]-x;
+            p.rect(x,Levels.FLOOR_TOP,w,Levels.CELL,0xffa9bfce,0);p.line(x,Levels.FLOOR_TOP+.6f,x+w,Levels.FLOOR_TOP+.6f,0xffeef7ff,.8f);
+        }
         for(int g=0;g<e.level.gates.length;g+=2){
-            float gateL=Levels.LEFT+e.level.gates[g]*Levels.CELL,gateR=Levels.LEFT+e.level.gates[g+1]*Levels.CELL;
-            p.line(gateL,Levels.BOTTOM-11,gateL,Levels.BOTTOM,0xffa5f5ee,1);p.line(gateR,Levels.BOTTOM-11,gateR,Levels.BOTTOM,0xffa5f5ee,1);
+            float gateL=e.level.gateLeft(g),gateR=e.level.gateRight(g);
+            p.line(gateL-.5f,Levels.FLOOR_TOP,gateL-.5f,Levels.BOTTOM,0xffa5f5ee,.6f);p.line(gateR+.5f,Levels.FLOOR_TOP,gateR+.5f,Levels.BOTTOM,0xffa5f5ee,.6f);
             if(e.state==Engine.State.READY)center("↑ ВХОД ↑",(gateL+gateR)/2,Levels.BOTTOM+15,8,CYAN,true);
         }
         p.line(14,537,14,740,0xff74a5c8,2);p.line(386,537,386,740,0xff74a5c8,2);
-        if(app.effects)for(Engine.Particle a:e.particles){int alpha=(int)(255*Math.max(0,a.life/a.total));p.rect(a.x,a.y,2,2,(a.color&0x00ffffff)|(alpha<<24),.5f);}
-        for(Engine.Ball b:e.balls){if(app.effects&&e.balls.size()<180)for(int k=4;k>=0;k--)p.circle(b.tx[k],b.ty[k],2.8f-k*.35f,((80-k*12)<<24)|0x0064dcf4);p.circle(b.x,b.y,4.4f,0x307cecff);p.circle(b.x,b.y,3,WHITE);p.circle(b.x-.7f,b.y-.7f,1,0xffd2ffff);if(b.count.compareTo(java.math.BigInteger.ONE)>0){p.circle(b.x-2.8f,b.y+2.8f,1.3f,GOLD);p.circle(b.x+2.8f,b.y+2.8f,1.3f,GOLD);}}
+        for(Engine.Ball b:e.balls){if(app.effects&&e.balls.size()<180)for(int k=4;k>=0;k--)p.circle(b.tx[k],b.ty[k],2.8f-k*.35f,((80-k*12)<<24)|0x0064dcf4);p.circle(b.x,b.y,4.4f,0x307cecff);p.circle(b.x,b.y,Engine.RADIUS,WHITE);p.circle(b.x-.7f,b.y-.7f,1,0xffd2ffff);if(b.count.compareTo(java.math.BigInteger.ONE)>0){p.circle(b.x-2.8f,b.y+2.8f,1.3f,GOLD);p.circle(b.x+2.8f,b.y+2.8f,1.3f,GOLD);}}
         String[] labels={"+3","×3","↔","S","▰"};int[] colors={CYAN,GOLD,0xffb69aff,0xff82b7ff,0xff8deac9};
         for(Engine.Drop d:e.drops){p.circle(d.x,d.y,11,colors[d.kind]);center(labels[d.kind],d.x,d.y+4,11,BG,true);}
         if(app.effects)p.rect(e.paddle-e.width/2-3,Engine.PADDLE_Y-3,e.width+6,13,0x33ffb64f,7);
         p.rect(e.paddle-e.width/2,Engine.PADDLE_Y,e.width,7,0xffffb64f,4);
         p.rect(e.paddle-e.width/2+3,Engine.PADDLE_Y,e.width-6,2,WHITE,1);
         if(e.state==Engine.State.READY){
-            float gate=Levels.LEFT+(e.level.gateStart+e.level.gateEnd)*.5f*Levels.CELL;
-            float a=(float)Math.atan2(gate-e.paddle,Engine.PADDLE_Y-Levels.BOTTOM+12);if(Math.abs(a)<.06f)a=a<0?-.06f:.06f;
-            for(int i=0;i<10;i++){float distance=22+i*14;p.circle(e.paddle+(float)Math.sin(a)*distance,Engine.PADDLE_Y-8-(float)Math.cos(a)*distance,1,0x88c7f8ff);}
+            Engine.Ball serve=e.balls.get(0);float a=e.serveAngle();
+            for(int i=0;i<10;i++){float distance=22+i*14;p.circle(serve.x+(float)Math.sin(a)*distance,serve.y-(float)Math.cos(a)*distance,1,0x88c7f8ff);}
             center("КОСНИСЬ ПОЛЯ ДЛЯ ЗАПУСКА",200,618,11,WHITE,true);
             center("Веди пальцем, чтобы двигать платформу",200,642,10,MUTED,false);
             center("Угол отскока зависит от места удара о платформу",200,663,8,MUTED,false);
@@ -103,7 +105,6 @@ public final class GameRenderer {
         if(e.hasGroups())text("В ГРУППАХ · "+e.balls.size()+" траекторий",18,579,7,GOLD,false);
         if(e.noticeTime>0)center(e.notice,200,599,9,LIME,true);
         else if(e.state==Engine.State.READY)center(e.level.hint(),200,586,8,MUTED,false);
-        if(e.combo>=10&&e.comboTime>0)center("КОМБО ×"+e.combo,200,672,13,GOLD,true);
         p.line(16,750,384,750,EDGE,1);button(16,766,114,40,"Уровни","levels",false);button(142,766,72,40,"×1","speed1",app.speed==1);button(222,766,72,40,"×2","speed2",app.speed==2);button(302,766,80,40,"×4","speed4",app.speed==4);
         if(e.state==Engine.State.PAUSED)overlay("ПАУЗА","Уровень "+e.level.number+" · "+e.level.title(),"Продолжить","resume","Карта уровней","levels",false);
         else if(e.state==Engine.State.WON)overlay(e.level.number==Levels.COUNT?"ШТОРМ ПОКОРЁН":"УРОВЕНЬ ПРОЙДЕН","★ "+e.stars()+" / 3     ·     СЧЁТ "+e.score,e.level.number==Levels.COUNT?"Карта уровней":"Следующий уровень",e.level.number==Levels.COUNT?"levels":"next","Пройти ещё раз","retry",true);

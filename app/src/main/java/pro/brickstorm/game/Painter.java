@@ -8,6 +8,7 @@ public interface Painter {
     default void artwork(){}
     default void thumbnail(Levels.Layout l,float x,float y,float width,float height){
         float cw=width/Levels.COLS,ch=height/Levels.ROWS;
-        for(int i=0;i<l.cells.length;i++)if(l.cells[i]!=0)rect(x+(i%64)*cw,y+(i/64)*ch,cw,ch,l.cells[i]<0?0xffb3cbdc:l.colors[i],0);
+        for(int i=0;i<67*64;i++)if(l.cells[i]!=0)rect(x+(i%64)*cw,y+(i/64)*ch,cw,ch,l.cells[i]<0?0xffb3cbdc:l.colors[i],0);
+        for(int f=0;f<l.floorSegments.length;f+=2)rect(x+(l.floorSegments[f]-Levels.LEFT)/368*width,y+67*ch,(l.floorSegments[f+1]-l.floorSegments[f])/368*width,ch,0xffb3cbdc,0);
     }
 }

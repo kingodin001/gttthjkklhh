@@ -17,7 +17,7 @@ public final class EngineTest {
             for(int x=0;x<64;x++)check(l.cells[x]==-1,"Closed top "+n);
             for(int y=0;y<68;y++){check(l.cells[y*64]==-1,"Closed left "+n);check(l.cells[y*64+63]==-1,"Closed right "+n);}
             // Each advertised entrance fits the ball, is open, and has a clear landing gallery.
-            for(int g=0;g<l.gates.length;g+=2){int a=l.gates[g],b=l.gates[g+1];check((b-a)*Levels.CELL>Engine.RADIUS*6,"Comfortable entry "+n);
+            for(int g=0;g<l.gates.length;g+=2){int a=l.gates[g],b=l.gates[g+1];check(l.gateWidth>Engine.RADIUS*2&&l.gateWidth<=Engine.RADIUS*4,"Exact one-to-two-ball entry "+n);
                 for(int y=64;y<68;y++)for(int x=a;x<b;x++)check(l.cells[y*64+x]==0,"Unobstructed entry "+n);
                 for(int x=a;x<b;x++)check(l.cells[65*64+x]==0,"No decorative rail across entrance "+n);
             }
@@ -25,7 +25,7 @@ public final class EngineTest {
         check(art==8,"Eight distinct mosaics");
         for(int n=1;n<=50;n++){
             Engine serve=new Engine(events);serve.load(n);check(serve.paddle-serve.width/2>=Levels.LEFT&&serve.paddle+serve.width/2<=Levels.RIGHT,"Initial paddle stays on screen "+n);serve.launch();boolean entered=false;
-            for(int frame=0;frame<90;frame++){serve.update(1f/60);for(Engine.Ball ball:serve.balls){if(ball.y<Levels.BOTTOM-Engine.RADIUS)entered=true;noSteelOverlap(serve,ball);}}
+            for(int frame=0;frame<90;frame++){serve.update(1f/60);for(Engine.Ball ball:serve.balls){if(ball.y<Levels.FLOOR_TOP-Engine.RADIUS)entered=true;noSteelOverlap(serve,ball);}}
             check(entered,"Default launch enters the actual route "+n);
         }
 
@@ -64,14 +64,19 @@ public final class EngineTest {
         // Every entrance passes a real ball. Every floor section reflects from either side.
         for(int n=1;n<=Levels.COUNT;n++){
             Levels.Layout l=Levels.make(n);
-            for(int g=0;g<l.gates.length;g+=2){float gapX=Levels.LEFT+(l.gates[g]+l.gates[g+1])*.5f*Levels.CELL;
-                e.load(n);e.launch();e.balls.clear();Engine.Ball ball=new Engine.Ball(gapX,Levels.BOTTOM+4,0,-420);e.balls.add(ball);e.update(.05f);check(ball.y<Levels.TOP+66*Levels.CELL&&ball.vy<0,"Real ball passes entry "+n);
+            for(int g=0;g<l.gates.length;g+=2){float gapX=l.gateCenter(g);
+                e.load(n);e.launch();e.balls.clear();Engine.Ball ball=new Engine.Ball(gapX,Levels.BOTTOM+4,0,-420);e.balls.add(ball);e.update(.05f);check(ball.y<Levels.FLOOR_TOP-Engine.RADIUS&&ball.vy<0,"Real ball passes entry "+n);
             }
             for(boolean below:new boolean[]{true,false}){
-                e.load(n);e.launch();e.balls.clear();int wallCol=2;while(l.cells[66*64+wallCol]!=-1)wallCol++;float wallX=Levels.LEFT+(wallCol+.5f)*Levels.CELL,y=below?Levels.BOTTOM+Engine.RADIUS+1:Levels.TOP+66*Levels.CELL-Engine.RADIUS-1;
+                e.load(n);e.launch();e.balls.clear();Arrays.fill(e.cells,0);e.cells[65]=1;e.remaining=1;int wallCol=2;while(l.cells[66*64+wallCol]!=-1)wallCol++;float wallX=Levels.LEFT+(wallCol+.5f)*Levels.CELL,y=below?Levels.BOTTOM+Engine.RADIUS+1:Levels.FLOOR_TOP-Engine.RADIUS-1;
                 Engine.Ball ball=new Engine.Ball(wallX,y,0,below?-420:420);e.balls.add(ball);e.update(.02f);check(below?ball.vy>0:ball.vy<0,"Real floor reflects both sides "+n);
             }
         }
+        for(int n=1;n<=58;n++){
+            e.load(n);e.launch();e.balls.clear();float x=e.level.gateLeft(0)+Engine.RADIUS-.15f;
+            Engine.Ball clipped=new Engine.Ball(x,Levels.BOTTOM+Engine.RADIUS+1,0,-300);e.balls.add(clipped);e.update(.03f);check(clipped.vy>0,"Precise floor cap blocks an off-center ball "+n);
+        }
+        e.load(3);e.launch();e.balls.clear();Engine.Ball grazing=new Engine.Ball(100,Levels.BOTTOM+Engine.RADIUS+.002f,-300,-1);grazing.quiet=10;e.balls.add(grazing);e.update(.02f);check(grazing.vy>0,"Anti-stall correction cannot turn a grazing reflection back into steel");noSteelOverlap(e,grazing);
         // All 58 levels are open even on an upgrade from a completed classic campaign.
         Memory memory=new Memory();memory.map.put("unlocked",200);memory.map.put("stars_1",3);memory.map.put("last",199);AppModel a=new AppModel(memory);
         for(int n=1;n<=58;n++){a.start(n);check(a.game.level.number==n&&a.screen.equals("game"),"Free level access "+n);}
@@ -80,11 +85,15 @@ public final class EngineTest {
         b.action("levels");check(b.game.state==Engine.State.PAUSED&&b.screen.equals("levels"),"Level picker pauses session");b.action("nextpage");b.action("nextpage");b.action("nextpage");b.action("nextpage");check(b.page==AppModel.PAGES-1,"Last page bounded");b.start(58);b.action("next");check(b.screen.equals("levels"),"Final level next returns to map");
         for(int speed:new int[]{1,2,4}){b.start(1);b.game.launch();b.action("speed"+speed);b.tick(.01f);check(Math.abs(b.game.elapsed-.01f*speed)<.00001,"Simulation speed "+speed);b.action("pause");float time=b.game.elapsed;b.tick(.02f);check(b.game.elapsed==time,"Pause at speed "+speed);}
         // No automated campaign playthrough in this release: structural checks and focused regressions only.
-        System.out.println("PASS: "+checks+" focused checks; 58 selectable layouts, 50 full-field routes + eight mosaics; bricks "+min+".."+max+"; repeated yellow bonus x40 preserves exact count beyond trajectory budget.");
+        System.out.println("PASS: "+checks+" focused checks; 58 selectable layouts, 50 different route graphs + eight mosaics; bricks "+min+".."+max+"; repeated yellow bonus x40 preserves exact count beyond trajectory budget.");
     }
     static void noSteelOverlap(Engine e,Engine.Ball b){
         int cx=(int)((b.x-Levels.LEFT)/Levels.CELL),cy=(int)((b.y-Levels.TOP)/Levels.CELL);
-        for(int y=Math.max(0,cy-1);y<=Math.min(67,cy+1);y++)for(int x=Math.max(0,cx-1);x<=Math.min(63,cx+1);x++)if(e.cells[y*64+x]<0){
+        for(int f=0;f<e.level.floorSegments.length;f+=2){
+            float l=e.level.floorSegments[f],r=e.level.floorSegments[f+1];float px=Engine.clamp(b.x,l,r),py=Engine.clamp(b.y,Levels.FLOOR_TOP,Levels.BOTTOM);
+            check((b.x-px)*(b.x-px)+(b.y-py)*(b.y-py)>Engine.RADIUS*Engine.RADIUS-.1f,"No penetration of exact floor aperture "+e.level.number);
+        }
+        for(int y=Math.max(0,cy-1);y<=Math.min(67,cy+1);y++)for(int x=Math.max(0,cx-1);x<=Math.min(63,cx+1);x++)if(y<67&&e.cells[y*64+x]<0){
             float l=Levels.LEFT+x*Levels.CELL,t=Levels.TOP+y*Levels.CELL;
             float px=Engine.clamp(b.x,l,l+Levels.CELL),py=Engine.clamp(b.y,t,t+Levels.CELL);
             check((b.x-px)*(b.x-px)+(b.y-py)*(b.y-py)>Engine.RADIUS*Engine.RADIUS-.1f,"No steel penetration on "+e.level.number+" at "+x+","+y);

@@ -61,7 +61,8 @@ public final class MainActivity extends Activity {
             Bitmap thumb=thumbnails[l.number-1];
             if(thumb==null){
                 thumb=Bitmap.createBitmap(128,136,Bitmap.Config.ARGB_8888);Canvas c=new Canvas(thumb);
-                for(int i=0;i<l.cells.length;i++)if(l.cells[i]!=0){pixel.setColor(l.cells[i]<0?0xffb3cbdc:l.colors[i]);float px=i%64*2,py=i/64*2;c.drawRect(px,py,px+2,py+2,pixel);}
+                for(int i=0;i<67*64;i++)if(l.cells[i]!=0){pixel.setColor(l.cells[i]<0?0xffb3cbdc:l.colors[i]);float px=i%64*2,py=i/64*2;c.drawRect(px,py,px+2,py+2,pixel);}
+                for(int f=0;f<l.floorSegments.length;f+=2){pixel.setColor(0xffb3cbdc);float left=(l.floorSegments[f]-Levels.LEFT)/Levels.CELL*2,right=(l.floorSegments[f+1]-Levels.LEFT)/Levels.CELL*2;c.drawRect(left,134,right,136,pixel);}
                 thumbnails[l.number-1]=thumb;
             }
             paint.setColor(Color.WHITE);paint.setFilterBitmap(false);rect.set(x,y,x+w,y+h);canvas.drawBitmap(thumb,null,rect,paint);
@@ -71,7 +72,7 @@ public final class MainActivity extends Activity {
             if(lastLevel!=e.level.number||lastEngine!=e){Arrays.fill(previous,Integer.MIN_VALUE);lastLevel=e.level.number;lastEngine=e;}
             for(int i=0;i<e.cells.length;i++)if(previous[i]!=e.cells[i]){
                 float x=i%64*Levels.CELL,y=i/64*Levels.CELL;pixel.setColor(0xff102f4b);boardCanvas.drawRect(x,y,x+Levels.CELL,y+Levels.CELL,pixel);
-                int hp=e.cells[i];if(hp<0){
+                int hp=i/64==67?0:e.cells[i];if(hp<0){
                     // One continuous dark steel face: unlike empty space, every pixel is solid.
                     pixel.setColor(0xff9fb5c6);boardCanvas.drawRect(x,y,x+Levels.CELL,y+Levels.CELL,pixel);
                     pixel.setColor(0xffeef7ff);boardCanvas.drawRect(x,y,x+Levels.CELL,y+.65f,pixel);
@@ -85,7 +86,7 @@ public final class MainActivity extends Activity {
                 previous[i]=hp;
             }
             canvas.drawBitmap(board,16,146,null);
-            for(int y=0;y<68;y++){int x=0;while(x<64){if(e.cells[y*64+x]!=-1){x++;continue;}int start=x;while(x<64&&e.cells[y*64+x]==-1)x++;
+            for(int y=0;y<67;y++){int x=0;while(x<64){if(e.cells[y*64+x]!=-1){x++;continue;}int start=x;while(x<64&&e.cells[y*64+x]==-1)x++;
                 float l=16+start*Levels.CELL,t=146+y*Levels.CELL,w=(x-start)*Levels.CELL;
                 rect(l,t,w,Levels.CELL,0xffa9bfce,0);line(l,t+.6f,l+w,t+.6f,0xffdceaf1,.8f);line(l,t+Levels.CELL-.6f,l+w,t+Levels.CELL-.6f,0xff566f85,1);
             }}

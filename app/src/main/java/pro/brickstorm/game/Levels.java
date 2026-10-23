@@ -3,13 +3,16 @@ package pro.brickstorm.game;
 /** Fifty authored ricochet puzzles and eight playable brick mosaics. */
 public final class Levels {
     public static final int COUNT=58, COLS=64, ROWS=68;
-    public static final float LEFT=16, TOP=146, CELL=5.75f, RIGHT=384, BOTTOM=TOP+ROWS*CELL;
+    public static final float LEFT=16, TOP=146, CELL=5.75f, RIGHT=384, BOTTOM=TOP+ROWS*CELL, FLOOR_TOP=TOP+67*CELL;
     private static final Layout[] CACHE=new Layout[COUNT];
     public static final int[] PALETTE={0xffff705b,0xffffb344,0xffffe16b,0xff75d8bc,0xff42d5e4,0xff7998ef,0xffbfa1ff,0xfff695c5,0xffecf1fa,0xff7494b7,0xffb7e767,0xffe4ba70,0xffa8dffa,0xffed8a9b,0xff7bc8d5,0xffd6beec};
     public static final class Layout {
         public final int number; public final int[] cells,colors,gates; public final int blocks;
-        public final int gateStart,gateEnd; public final float speed,paddleWidth; public final int targetSeconds;
-        Layout(int n,int[] c,int[] col,int count){number=n;cells=c;colors=col;blocks=count;gates=LevelData.GATES[n-1].clone();gateStart=gates[0];gateEnd=gates[1];speed=190+(n-1)*2.3f;paddleWidth=144-(n-1)*1.05f;targetSeconds=240+(n-1)*5;}
+        public final int gateStart,gateEnd; public final float speed,paddleWidth,gateWidth; public final float[] floorSegments; public final int targetSeconds;
+        Layout(int n,int[] c,int[] col,int count){number=n;cells=c;colors=col;blocks=count;gates=LevelData.GATES[n-1].clone();gateStart=gates[0];gateEnd=gates[1];gateWidth=LevelData.GATE_WIDTHS[n-1];floorSegments=new float[gates.length+2];float cursor=LEFT;for(int g=0;g<gates.length;g+=2){floorSegments[g]=cursor;floorSegments[g+1]=gateLeft(g);cursor=gateRight(g);}floorSegments[gates.length]=cursor;floorSegments[gates.length+1]=RIGHT;speed=190+(n-1)*2.3f;paddleWidth=144-(n-1)*1.05f;targetSeconds=240+(n-1)*5;}
+        public float gateCenter(int g){return LEFT+(gates[g]+gates[g+1])*.5f*CELL;}
+        public float gateLeft(int g){return gateCenter(g)-gateWidth/2;}
+        public float gateRight(int g){return gateCenter(g)+gateWidth/2;}
         public String title(){return LevelData.TITLE[number-1];}
         public String hint(){return LevelData.HINT[number-1];}
         public String family(){return LevelData.FAMILY[number-1];}

@@ -7,35 +7,32 @@ import java.math.BigInteger;
 public final class Engine {
     public enum State { READY,PLAYING,PAUSED,WON,LOST }
     public interface Events { void sound(int kind); void completed(int level,int stars,int score); }
-    public static final int MAX_BALLS=512,MAX_PARTICLES=420;
+    public static final int MAX_BALLS=512;
     public static final float PADDLE_Y=700,FLOOR=750,RADIUS=2.5f,SHIELD_Y=735;
     public static final class Ball { public float x,y,vx,vy,quiet=0; public BigInteger count=BigInteger.ONE; public final float[] tx=new float[5],ty=new float[5]; public Ball(float x,float y,float vx,float vy){this.x=x;this.y=y;this.vx=vx;this.vy=vy;for(int i=0;i<5;i++){tx[i]=x;ty[i]=y;}} }
     public static final class Drop {public float x,y;public int kind;Drop(float x,float y,int k){this.x=x;this.y=y;kind=k;}}
-    public static final class Particle {public float x,y,vx,vy,life,total;public int color;Particle(float x,float y,float vx,float vy,int c,float t){this.x=x;this.y=y;this.vx=vx;this.vy=vy;color=c;life=total=t;}}
     public final ArrayList<Ball> balls=new ArrayList<>();
     public final ArrayList<Drop> drops=new ArrayList<>();
-    public final ArrayList<Particle> particles=new ArrayList<>();
     public Levels.Layout level; public int[] cells; public State state=State.READY;
     public int remaining,lives=3,score=0,broken=0,combo=0;public float paddle=200,target=200,width=96,elapsed=0,wideTime=0,slowTime=0,shieldTime=0,comboTime=0;
     public String notice=""; public float noticeTime=0;
     public Events events; private State pausedFrom=State.PLAYING; private Random rng; private float accumulator=0;private float lastX=200,lastY=330;
     public Engine(Events e){events=e;load(1);}
-    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();particles.clear();rng=new Random(9137L*n);state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(paddle,PADDLE_Y-8,0,0));}
+    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();rng=new Random(9137L*n);state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));}
     public void launch(){
         if(state!=State.READY)return;state=State.PLAYING;
-        float gate=Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL;
-        float angle=(float)Math.atan2(gate-paddle,PADDLE_Y-Levels.BOTTOM+12);
-        if(Math.abs(angle)<.06f)angle=angle<0?-.06f:.06f;
+        float angle=serveAngle();
         Ball b=balls.get(0);b.vx=(float)Math.sin(angle)*level.speed;b.vy=-(float)Math.cos(angle)*level.speed;
-        if(level.number==1&&broken==0){for(float offset:new float[]{-.035f,.035f})balls.add(new Ball(paddle,PADDLE_Y-8,(float)Math.sin(angle+offset)*level.speed,-(float)Math.cos(angle+offset)*level.speed));}
+        if(level.number==1&&broken==0){for(float offset:new float[]{-.008f,.008f})balls.add(new Ball(b.x,PADDLE_Y-8,(float)Math.sin(angle+offset)*level.speed,-(float)Math.cos(angle+offset)*level.speed));}
         notice="Войди в проход и выбирай угол отскока";noticeTime=3;events.sound(0);
     }
+    private float serveX(){return clamp(level.gateCenter(0),paddle-width/2+RADIUS+1,paddle+width/2-RADIUS-1);}
+    public float serveAngle(){Ball ball=balls.get(0);return (float)Math.atan2(level.gateCenter(0)-ball.x,ball.y-(Levels.FLOOR_TOP+Levels.BOTTOM)/2);}
     public void togglePause(){if(state==State.PLAYING||state==State.READY){pausedFrom=state;state=State.PAUSED;}else if(state==State.PAUSED)state=pausedFrom;}
-    public void aim(float x){target=clamp(x,16+width/2,384-width/2);if(state==State.READY){paddle=target;balls.get(0).x=paddle;}}
+    public void aim(float x){target=clamp(x,16+width/2,384-width/2);if(state==State.READY){paddle=target;balls.get(0).x=serveX();}}
     public void update(float dt){
         if(state!=State.PLAYING&&state!=State.READY)return;
         dt=Math.min(.08f,Math.max(0,dt));noticeTime=Math.max(0,noticeTime-dt);
-        for(int i=particles.size()-1;i>=0;i--){Particle p=particles.get(i);p.life-=dt;if(p.life<=0){particles.remove(i);continue;}p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=100*dt;}
         if(state==State.READY)return;
         elapsed+=dt;wideTime=Math.max(0,wideTime-dt);slowTime=Math.max(0,slowTime-dt);shieldTime=Math.max(0,shieldTime-dt);comboTime=Math.max(0,comboTime-dt);if(comboTime==0)combo=0;
         width=wideTime>0?Math.min(176,level.paddleWidth*1.55f):level.paddleWidth;
@@ -54,7 +51,7 @@ public final class Engine {
         if(remaining==0){win();return;}
         if(balls.isEmpty()){
             lives--;drops.clear();wideTime=slowTime=shieldTime=0;width=level.paddleWidth;accumulator=0;
-            if(lives<=0){state=State.LOST;events.sound(4);}else{state=State.READY;balls.add(new Ball(paddle,PADDLE_Y-8,0,0));notice="Ещё попытка. Коснись поля для запуска";noticeTime=3;events.sound(4);}
+            if(lives<=0){state=State.LOST;events.sound(4);}else{state=State.READY;balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));notice="Ещё попытка. Коснись поля для запуска";noticeTime=3;events.sound(4);}
         }
     }
     private static final class Contact {float t,nx,ny;int cell;boolean paddle;void reset(){t=1.0001f;nx=ny=0;cell=-1;paddle=false;}}
@@ -70,11 +67,15 @@ public final class Engine {
             if(shieldTime>0&&dy>0&&b.y<=SHIELD_Y-RADIUS+.001f)boundary(h,(SHIELD_Y-RADIUS-b.y)/dy,0,-1);
             if(dy>0&&b.y<=PADDLE_Y-RADIUS+.001f){float t=(PADDLE_Y-RADIUS-b.y)/dy;float x=b.x+dx*t;
                 if(t>=0&&t<=1&&x>=paddle-width/2-RADIUS&&x<=paddle+width/2+RADIUS&&t<h.t){h.t=t;h.nx=0;h.ny=-1;h.cell=-1;h.paddle=true;}}
+            for(int floor=0;floor<level.floorSegments.length;floor+=2){
+                float l=level.floorSegments[floor],r=level.floorSegments[floor+1];
+                if(r>l)sweep(h,b.x,b.y,dx,dy,l-RADIUS,Levels.FLOOR_TOP-RADIUS,r+RADIUS,Levels.BOTTOM+RADIUS,-1);
+            }
             int x0=Math.max(0,(int)Math.floor((Math.min(b.x,b.x+dx)-RADIUS-16)/Levels.CELL));
             int x1=Math.min(63,(int)Math.floor((Math.max(b.x,b.x+dx)+RADIUS-16)/Levels.CELL));
             int y0=Math.max(0,(int)Math.floor((Math.min(b.y,b.y+dy)-RADIUS-146)/Levels.CELL));
             int y1=Math.min(67,(int)Math.floor((Math.max(b.y,b.y+dy)+RADIUS-146)/Levels.CELL));
-            for(int y=y0;y<=y1;y++)for(int x=x0;x<=x1;x++){int i=y*64+x;if(cells[i]==0)continue;
+            for(int y=y0;y<=y1;y++)for(int x=x0;x<=x1;x++){int i=y*64+x;if(y==67||cells[i]==0)continue;
                 sweep(h,b.x,b.y,dx,dy,16+x*Levels.CELL-RADIUS,146+y*Levels.CELL-RADIUS,16+(x+1)*Levels.CELL+RADIUS,146+(y+1)*Levels.CELL+RADIUS,i);}
             if(h.t>1){b.x+=dx;b.y+=dy;break;}
             b.x+=dx*h.t+h.nx*.025f;b.y+=dy*h.t+h.ny*.025f;left*=1-h.t;
@@ -82,7 +83,7 @@ public final class Engine {
             else{if(h.nx!=0)b.vx=-b.vx;if(h.ny!=0)b.vy=-b.vy;}
             if(h.cell>=0){boolean brick=cells[h.cell]>0;int damage=b.count.compareTo(BigInteger.ONE)>0?2:1;for(int strike=0;strike<damage&&cells[h.cell]>0;strike++)hit(h.cell);if(brick)b.quiet=0;}
             // Free a rare repeating axis-aligned orbit only after prolonged wall-only travel.
-            if(b.quiet>9){float angle=(float)Math.atan2(b.vy,b.vx)+.09f;float speed=(float)Math.hypot(b.vx,b.vy);b.vx=(float)Math.cos(angle)*speed;b.vy=(float)Math.sin(angle)*speed;b.quiet=0;}
+            if(b.quiet>9){float angle=(float)Math.atan2(b.vy,b.vx)+.09f;float speed=(float)Math.hypot(b.vx,b.vy);float nx=(float)Math.cos(angle)*speed,ny=(float)Math.sin(angle)*speed;if((h.nx==0||nx*h.nx>0)&&(h.ny==0||ny*h.ny>0)){b.vx=nx;b.vy=ny;}b.quiet=0;}
 
         }
     }
@@ -99,7 +100,7 @@ public final class Engine {
     void hit(int i){
         if(cells[i]<=0)return;
         cells[i]--;lastX=16+(i%Levels.COLS+.5f)*Levels.CELL;lastY=146+(i/Levels.COLS+.5f)*Levels.CELL;
-        if(cells[i]==0){remaining--;broken++;combo++;comboTime=1.6f;score+=10+Math.min(40,combo/3);spark(lastX,lastY,level.colors[i],2);
+        if(cells[i]==0){remaining--;broken++;combo++;comboTime=1.6f;score+=10+Math.min(40,combo/3);
             if((broken==6||broken==18||broken%32==0)&&drops.size()<14){int k=broken==6?0:broken==18?1:rng.nextInt(5);drops.add(new Drop(lastX,lastY,k));}
             if(broken%90==0&&balls.size()<12)split(3);
         }
@@ -141,7 +142,6 @@ public final class Engine {
             float angle=(rng.nextFloat()-.5f)*2.2f;balls.add(new Ball(sx,sy,(float)Math.sin(angle)*level.speed,-(float)Math.cos(angle)*level.speed));
         }
     }
-    private void spark(float x,float y,int c,int count){for(int i=0;i<count&&particles.size()<MAX_PARTICLES;i++){float a=rng.nextFloat()*6.28f,s=30+rng.nextFloat()*110;particles.add(new Particle(x,y,(float)Math.cos(a)*s,(float)Math.sin(a)*s,c,.3f+rng.nextFloat()*.3f));}}
     private void win(){if(state==State.WON)return;state=State.WON;int stars=lives==3&&elapsed<level.targetSeconds?3:lives>=2?2:1;events.completed(level.number,stars,score);events.sound(5);}
     public int stars(){return lives==3&&elapsed<level.targetSeconds?3:lives>=2?2:1;}
     public float progress(){return 1-remaining/(float)level.blocks;}
