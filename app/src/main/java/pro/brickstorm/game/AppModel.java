@@ -5,10 +5,17 @@ public final class AppModel implements Engine.Events {
     public final Storage storage;public final Engine game;public String screen="home";public int page=0,last=1,speed=1;public boolean sound=true,effects=true,hasSession=false;
     public final int[] stars=new int[Levels.COUNT+1],best=new int[Levels.COUNT+1];
     // New campaign has its own score namespace. Existing classic results stay on disk.
-    public AppModel(Storage s){storage=s;last=Math.max(1,Math.min(Levels.COUNT,s.get("route4_last",1)));sound=s.get("sound",1)==1;effects=s.get("effects",1)==1;for(int i=1;i<=Levels.COUNT;i++){stars[i]=Math.max(0,Math.min(3,s.get("route4_stars_"+i,0)));best[i]=Math.max(0,s.get("route4_best_"+i,0));}game=new Engine(this);}
+    public AppModel(Storage s){
+        storage=s;last=Levels.positionOf(s.get("level_last_id",s.get("route4_last",1)));sound=s.get("sound",1)==1;effects=s.get("effects",1)==1;
+        for(int i=1;i<=Levels.COUNT;i++){
+            int id=Levels.make(i).id();int oldStars=id<=58?s.get("route4_stars_"+id,0):0,oldBest=id<=58?s.get("route4_best_"+id,0):0;
+            stars[i]=Math.max(0,Math.min(3,s.get("level_stars_"+id,oldStars)));best[i]=Math.max(0,s.get("level_best_"+id,oldBest));
+        }
+        game=new Engine(this);
+    }
     public int totalStars(){int sum=0;for(int i:stars)sum+=i;return sum;}
     public int completedCount(){int sum=0;for(int i:stars)if(i>0)sum++;return sum;}
-    public void start(int n){if(n<1||n>Levels.COUNT)return;last=n;storage.put("route4_last",n);game.load(n);hasSession=true;speed=1;screen="game";}
+    public void start(int n){if(n<1||n>Levels.COUNT)return;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;screen="game";}
     public void tick(float dt){for(int i=0;i<speed;i++)game.update(dt);}
     public void action(String a){
         if(a.startsWith("level:")){start(Integer.parseInt(a.substring(6)));return;}
@@ -33,5 +40,5 @@ public final class AppModel implements Engine.Events {
     public void menu(){if(game.state==Engine.State.PLAYING||game.state==Engine.State.READY)game.togglePause();screen="home";}
     public void back(){if(screen.equals("game")&&(game.state==Engine.State.PLAYING||game.state==Engine.State.READY))game.togglePause();else menu();}
     @Override public void sound(int kind){if(sound)storage.sound(kind);}
-    @Override public void completed(int level,int value,int score){hasSession=false;stars[level]=Math.max(stars[level],value);best[level]=Math.max(best[level],score);storage.put("route4_stars_"+level,stars[level]);storage.put("route4_best_"+level,best[level]);last=Math.min(Levels.COUNT,level+1);storage.put("route4_last",last);}
+    @Override public void completed(int level,int value,int score){hasSession=false;stars[level]=Math.max(stars[level],value);best[level]=Math.max(best[level],score);storage.put("level_stars_"+Levels.make(level).id(),stars[level]);storage.put("level_best_"+Levels.make(level).id(),best[level]);last=Math.min(Levels.COUNT,level+1);storage.put("level_last_id",Levels.make(last).id());}
 }

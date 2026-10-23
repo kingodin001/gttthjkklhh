@@ -95,7 +95,7 @@ public final class Engine {
         float enter=Math.max(nearX,nearY),exit=Math.min(farX,farY);
         if(enter>exit||exit<0||enter<-.0001f||enter>1||enter>=h.t)return;
         h.t=Math.max(0,enter);h.cell=cell;h.paddle=false;
-        if(Math.abs(nearX-nearY)<.00001f){h.nx=dx>0?-1:1;h.ny=dy>0?-1:1;}else if(nearX>nearY){h.nx=dx>0?-1:1;h.ny=0;}else{h.nx=0;h.ny=dy>0?-1:1;}
+        if(Math.abs(nearX-nearY)*Math.max(Math.abs(dx),Math.abs(dy))<.001f){h.nx=dx>0?-1:1;h.ny=dy>0?-1:1;}else if(nearX>nearY){h.nx=dx>0?-1:1;h.ny=0;}else{h.nx=0;h.ny=dy>0?-1:1;}
     }
     void hit(int i){
         if(cells[i]<=0)return;

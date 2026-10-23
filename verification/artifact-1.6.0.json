@@ -1,0 +1,23 @@
+{
+  "apk": "BrickStorm-1.6.0.apk",
+  "bytes": 2356081,
+  "sha256": "e89767323b297959ddfdff2e616c31c56dc4284461091524d94da5de712c4872",
+  "applicationId": "pro.brickstorm.game",
+  "versionName": "1.6.0",
+  "versionCode": 9,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "levels": 76,
+  "familiarRoutes": 50,
+  "newChambers": 18,
+  "artLevels": 8,
+  "entryWidths": [
+    10.5,
+    15.5
+  ],
+  "ballDiameter": 5,
+  "starMigrationTested": true,
+  "particles": false,
+  "physicalDeviceTested": false,
+  "fullPlaythrough": false
+}

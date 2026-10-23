@@ -93,7 +93,7 @@ class Board:
   trim=min(3,length/4);nx,ny=-dy/length*(width/2+1)*side,dx/length*(width/2+1)*side
   aa=(a[0]+dx/length*trim+nx,a[1]+dy/length*trim+ny);bb=(b[0]-dx/length*trim+nx,b[1]-dy/length*trim+ny)
   self.paint_line(aa,bb,1.1,'#')
- def finish(self,entry,one=False):
+ def finish(self,entry,two=False):
   for x,y in self.mask:self.c[y][x]='.'
   # A real landing chamber, never a one-row brick strip squeezed against the floor.
   for y in range(63,67):
@@ -101,7 +101,7 @@ class Board:
     if self.c[y][x]=='#':self.c[y][x]=chr(97+[0,2,6,4][(x//16+self.n)%4])
   for x in range(W):self.c[0][x]=self.c[67][x]='#'
   for y in range(H):self.c[y][0]=self.c[y][63]='#'
-  count=1 if one else 2;start=max(2,min(60,int(entry)));self.gates=[(start,start+count)];self.gateWidths=[5.5 if one else 9.5]
+  count=2 if two else 3;start=max(2,min(60,int(entry)));self.gates=[(start,start+count)];self.gateWidths=[10.5 if two else 15.5]
   for y in range(63,67):
    for x in range(max(1,start-1),min(63,start+count+1)):self.c[y][x]='.'
   for x in range(start,start+count):self.c[67][x]='.'
@@ -144,7 +144,7 @@ def make(n):
     b.rail(a,z,1 if (j+n+ri)%2 else -1,width)
     if n in [4,10,13,16,22,30,33,36,38,43,47,49,50]:b.rail(a,z,-1 if (j+n+ri)%2 else 1,width)
  one=n>6 and n%3==0;data=b.finish(s['routes'][0][0][0],one)
- return dict(number=n,title=s['title'],hint='Узкий вход удерживает шары внутри. Ищи отскоки.',family=s['family'],gates=b.gates,gateWidths=b.gateWidths,cells=data,blocks=sum(c.isalpha() for c in data),speed=round(190+(n-1)*2.3,2),paddle=round(144-(n-1)*1.05,2),routes=s['routes'])
+ return dict(number=n,id=n,title=s['title'],hint='Узкий вход удерживает шары внутри. Ищи отскоки.',family=s['family'],gates=b.gates,gateWidths=b.gateWidths,cells=data,blocks=sum(c.isalpha() for c in data),speed=round(190+(n-1)*2.3,2),paddle=round(144-(n-1)*1.05,2),routes=s['routes'])
 
 def normalize_art(l,n):
  b=Board(n);data=l['cells'];b.c=[list(data[y*64:(y+1)*64]) for y in range(68)]
@@ -155,18 +155,33 @@ def normalize_art(l,n):
   for x in range(2,62):b.c[y][x]='e' if x<32 else 'g'
  for y in range(56,67):
   for x in range(30,35):b.c[y][x]='.'
- d=b.finish(32,n%3==0);l.update(number=n,cells=d,gates=b.gates,gateWidths=b.gateWidths,blocks=sum(c.isalpha() for c in d),speed=round(190+(n-1)*2.3,2),paddle=round(144-(n-1)*1.05,2));return l
+ d=b.finish(32,n%3==0);l.update(number=n,id=n,cells=d,gates=b.gates,gateWidths=b.gateWidths,blocks=sum(c.isalpha() for c in d),speed=round(190+(n-1)*2.3,2),paddle=round(144-(n-1)*1.05,2));return l
 
 def write(catalog):
  out=['package pro.brickstorm.game;','/** Fifty explicit route graphs and exact world-space floor apertures. */','final class LevelData {']
  for field in ['title','hint','family','cells']:
   out+=['    static final String[] '+field.upper()+'={']+['        '+json.dumps(l[field],ensure_ascii=False)+',' for l in catalog]+['    };']
  out+=['    static final int[][] GATES={']+['        {'+','.join(str(x) for pair in l['gates'] for x in pair)+'},' for l in catalog]+['    };']
+ out+=['    static final int[] IDS={'+','.join(str(l['id']) for l in catalog)+'};']
  out+=['    static final float[] GATE_WIDTHS={'+','.join(str(l['gateWidths'][0])+'f' for l in catalog)+'};','    private LevelData(){}','}']
  (ROOT/'app/src/main/java/pro/brickstorm/game/LevelData.java').write_text('\n'.join(out)+'\n')
  (ROOT/'verification/level-catalog.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2))
 
 if __name__=='__main__':
- catalog=[make(n) for n in range(1,51)]
- for j,l in enumerate(json.loads((ROOT/'scripts/art-mosaics.json').read_text())):catalog.append(normalize_art(l,51+j))
- write(catalog);print('Wrote 50 distinct route graphs + 8 mosaics; exact 5.5 / 9.5 px entrances')
+ import runpy
+ old={n:make(n) for n in range(1,51)}
+ refs=runpy.run_path(str(ROOT/'scripts/reference-levels.py'))['build_reference']
+ art=[normalize_art(l,51+j) for j,l in enumerate(json.loads((ROOT/'scripts/art-mosaics.json').read_text()))]
+ # Interleave each new chamber among familiar routes, and move a few early routes around.
+ order=[1,2,7,3,6,4,5,*range(8,51)]
+ ref_at=[2,5,7,10,13,15,18,21,24,27,30,33,36,39,42,45,48,50]
+ art_at=[6,12,18,24,30,36,42,48]
+ catalog=[];ri=ai=0
+ for pos,old_id in enumerate(order,1):
+  catalog.append(old[old_id])
+  if pos in ref_at:
+   catalog.append(refs(len(catalog)+1,ri,Board,inside));ri+=1
+  if pos in art_at:catalog.append(art[ai]);ai+=1
+ for n,l in enumerate(catalog,1):
+  l.update(number=n,speed=round(190+(n-1)*2.0,2),paddle=round(144-(n-1)*.8,2))
+ write(catalog);print('Wrote 76 mixed levels: 50 familiar routes + 18 new reference chambers + 8 mosaics')
