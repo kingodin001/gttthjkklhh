@@ -6,6 +6,7 @@ public interface Painter {
     void text(String value,float x,float baseline,float size,int color,boolean bold,boolean center);
     void board(Engine e);
     default void artwork(){}
+    default void swarm(Engine e){for(Engine.Ball b:e.balls)circle(b.x,b.y,Engine.RADIUS,0xfff7fbff);}
     default void thumbnail(Levels.Layout l,float x,float y,float width,float height){
         float cw=width/Levels.COLS,ch=height/Levels.ROWS;
         for(int i=0;i<67*64;i++)if(l.cells[i]!=0)rect(x+(i%64)*cw,y+(i/64)*ch,cw,ch,l.cells[i]<0?0xffb3cbdc:l.colors[i],0);

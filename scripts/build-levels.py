@@ -167,6 +167,31 @@ def write(catalog):
  (ROOT/'app/src/main/java/pro/brickstorm/game/LevelData.java').write_text('\n'.join(out)+'\n')
  (ROOT/'verification/level-catalog.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2))
 
+def extended(index):
+ import copy
+ base=3+(index%48);variant=1+index//48;original=S[base-1]
+ def warp(p):
+  x,y=p;xx=x+(2.3+variant*.35)*math.sin(math.pi*(x-1)/62)*math.sin((y+variant*9)*.052)
+  yy=y if y>=63 else y+(variant%3-1)*2.3*math.sin(math.pi*y/67)
+  if variant%2==0:xx=63-xx
+  return (round(max(3,min(60,xx)),2),round(max(3,min(67,yy)),2))
+ routes=[]
+ for path in original['routes']:
+  route=[warp(p) for p in path]
+  # Add a staggered detour to a long straight segment in selected variants.
+  if index%3==0:
+   for j,(a,b) in enumerate(zip(route,route[1:])):
+    if abs(a[1]-b[1])<1 and abs(a[0]-b[0])>20 and 12<a[1]<51:
+     x1=a[0]+(b[0]-a[0])*.33;x2=a[0]+(b[0]-a[0])*.67;yy=a[1]+(5 if variant%2 else -5)
+     route[j+1:j+1]=[(x1,a[1]),(x1,yy),(x2,yy),(x2,b[1])];break
+  routes.append(route)
+ modified=copy.deepcopy(original);modified['routes']=routes
+ S[base-1]=modified
+ try:l=make(base)
+ finally:S[base-1]=original
+ l.update(id=1000+index,title=original['title']+' · '+str(variant+1),family='extended:'+str(index),routes=routes)
+ return l
+
 if __name__=='__main__':
  import runpy
  old={n:make(n) for n in range(1,51)}
@@ -182,6 +207,7 @@ if __name__=='__main__':
   if pos in ref_at:
    catalog.append(refs(len(catalog)+1,ri,Board,inside));ri+=1
   if pos in art_at:catalog.append(art[ai]);ai+=1
+ for i in range(224):catalog.append(extended(i))
  for n,l in enumerate(catalog,1):
-  l.update(number=n,speed=round(190+(n-1)*2.0,2),paddle=round(144-(n-1)*.8,2))
- write(catalog);print('Wrote 76 mixed levels: 50 familiar routes + 18 new reference chambers + 8 mosaics')
+  l.update(number=n,speed=round(190+min(n-1,75)*2+max(0,n-76)*.22,2),paddle=round(144-min(n-1,75)*.8-max(0,n-76)*.08,2))
+ write(catalog);print('Wrote 300 levels; first 76 retained, 224 extended route puzzles')

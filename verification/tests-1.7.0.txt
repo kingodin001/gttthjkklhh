@@ -1,0 +1,4 @@
+PASS: 292 different route graphs, including 18 new archive chambers; all 300 have exact 2–3-ball apertures, connected reachable bricks and no one-row wall pockets.
+PASS: 2735274 focused checks; 300 selectable layouts, 292 different route graphs + eight mosaics; bricks 1072..3815; physical multiball grows beyond 512, no weighted groups.
+PASS: all 300 real level cards are clickable across 19 pages; shared renderer screenshots exported for internal visual inspection.
+PASS: 8192 separate trajectories simulated for 90 frames; remaining 8192; desktop time 0.216013572 s (not a phone benchmark)

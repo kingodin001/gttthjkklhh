@@ -49,6 +49,8 @@ public final class MainActivity extends Activity {
     }
     static final class AndroidPainter implements Painter {
         Canvas canvas;final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final RectF rect=new RectF();Bitmap board;Canvas boardCanvas;final Paint pixel=new Paint();int[] previous;Engine lastEngine;int lastLevel=-1;
+        float[] swarmPoints=new float[Engine.MAX_BALLS*2];
+        @Override public void swarm(Engine e){int i=0;for(Engine.Ball b:e.balls){swarmPoints[i++]=b.x;swarmPoints[i++]=b.y;}paint.setColor(0xfff7fbff);paint.setStrokeWidth(Engine.RADIUS*2);paint.setStrokeCap(Paint.Cap.ROUND);canvas.drawPoints(swarmPoints,0,i,paint);paint.setStrokeCap(Paint.Cap.BUTT);}
         Bitmap artwork;final Bitmap[] thumbnails=new Bitmap[Levels.COUNT];
         void loadArtwork(Context c){int id=c.getResources().getIdentifier("menu_art","drawable",c.getPackageName());if(id!=0)artwork=BitmapFactory.decodeResource(c.getResources(),id);}
         @Override public void artwork(){if(artwork==null)return;paint.setColor(Color.WHITE);paint.setFilterBitmap(true);rect.set(0,0,400,820);int crop=(int)(artwork.getHeight()*400f/820f);int left=(artwork.getWidth()-crop)/2;canvas.drawBitmap(artwork,new Rect(left,0,left+crop,artwork.getHeight()),rect,paint);}

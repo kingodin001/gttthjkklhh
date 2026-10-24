@@ -35,8 +35,8 @@ for l in levels:
   shape=''.join('#' if c=='#' else '.' if c=='.' else 'x' for c in data)
   assert shape not in shapes,(n,'duplicate route geometry');shapes.add(shape);families.add(l['family'])
   for y in range(1,65,8):assert sum(c.isalpha() for c in data[y*64:(y+8)*64])>12,(n,'empty height band')
-assert len(shapes)==68 and len(families)==68
-assert len(set(l['id'] for l in levels))==76
+assert len(shapes)==292 and len(families)==292
+assert len(set(l['id'] for l in levels))==300
 assert sum(l.get('reference') is not None for l in levels)==18
-summary=f'PASS: 68 different route graphs, including 18 new archive chambers; all 76 have exact 2–3-ball apertures, connected reachable bricks and no one-row wall pockets.'
+summary=f'PASS: 292 different route graphs, including 18 new archive chambers; all 300 have exact 2–3-ball apertures, connected reachable bricks and no one-row wall pockets.'
 print(summary)
