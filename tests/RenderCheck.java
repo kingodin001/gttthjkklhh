@@ -22,7 +22,7 @@ public final class RenderCheck implements Painter {
             for(int j=0;j<AppModel.PAGE_SIZE&&page*AppModel.PAGE_SIZE+j<Levels.COUNT;j++){int n=page*AppModel.PAGE_SIZE+j+1;float x=24+j%4*90+41,y=205+j/4*119+55;if(!("level:"+n).equals(r.hit(x,y)))throw new AssertionError("Wrong card "+n);a.action(r.hit(x,y));if(a.game.level.number!=n)throw new AssertionError("Wrong level launch");access++;}
             int empty=page*AppModel.PAGE_SIZE+AppModel.PAGE_SIZE-1;if(empty>=Levels.COUNT&&r.hit(335,617)!=null)throw new AssertionError("Phantom last-page card");
         }
-        for(int n:new int[]{1,7,76,77,120,180,240,299,300}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
+        for(int n:new int[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,50,75,100,125,150,175,199,200}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
         a.screen="home";RenderCheck home=new RenderCheck();r.draw(home,a);ImageIO.write(home.image,"png",new File("verification/home.png"));
         a.screen="settings";RenderCheck settings=new RenderCheck();r.draw(settings,a);ImageIO.write(settings.image,"png",new File("verification/settings.png"));
         System.out.println("PASS: all "+access+" real level cards are clickable across "+AppModel.PAGES+" pages; shared renderer screenshots exported for internal visual inspection.");

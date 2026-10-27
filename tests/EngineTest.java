@@ -8,7 +8,7 @@ public final class EngineTest {
     static final class Memory implements AppModel.Storage{final Map<String,Integer> map=new HashMap<>();public int get(String k,int f){return map.getOrDefault(k,f);}public void put(String k,int v){map.put(k,v);}public void sound(int k){}}
     public static void main(String[] args){
         Set<Integer> hashes=new HashSet<>();Set<String> names=new HashSet<>();float previous=0,width=160;int min=99999,max=0,art=0;
-        check(Levels.COUNT==300,"292 puzzles plus eight art levels");
+        check(Levels.COUNT==200,"200 new enclosed mazes");
         for(int n=1;n<=Levels.COUNT;n++){
             Levels.Layout l=Levels.make(n),again=Levels.make(n);check(Arrays.equals(l.cells,again.cells),"Deterministic level "+n);check(l.cells.length==64*68,"Grid size");int count=0;
             for(int v:l.cells){check(v>=-1&&v<=2,"Valid cell");if(v>0)count++;}check(count==l.blocks&&count>=200,"Block count "+n);check(l.speed>previous&&l.paddleWidth<width,"Monotonic handling difficulty "+n);previous=l.speed;width=l.paddleWidth;
@@ -21,11 +21,28 @@ public final class EngineTest {
                 for(int x=a;x<b;x++)check(l.cells[65*64+x]==0,"No decorative rail across entrance "+n);
             }
         }
-        check(art==8,"Eight distinct mosaics");
+        check(art==0,"Previous mosaics removed from active campaign");
         for(int n=1;n<=Levels.COUNT;n++){
-            Engine serve=new Engine(events);serve.load(n);check(serve.paddle-serve.width/2>=Levels.LEFT&&serve.paddle+serve.width/2<=Levels.RIGHT,"Initial paddle stays on screen "+n);serve.launch();boolean entered=false;
+            Engine serve=new Engine(events);serve.load(n);check(serve.paddle-serve.width/2>=Levels.LEFT-.001f&&serve.paddle+serve.width/2<=Levels.RIGHT+.001f,"Initial paddle stays on screen "+n);serve.launch();boolean entered=false;
             for(int frame=0;frame<90;frame++){serve.update(1f/60);for(Engine.Ball ball:serve.balls){if(ball.y<Levels.FLOOR_TOP-Engine.RADIUS)entered=true;noSteelOverlap(serve,ball);}}
             check(entered,"Default launch enters the actual route "+n);
+        }
+
+        // Fire a real simulated ball through every brick-facing window. All
+        // empty/brick interfaces must belong to exactly 1–3 connected windows.
+        for(int n=1;n<=Levels.COUNT;n++){
+            Levels.Layout l=Levels.make(n);Set<Integer> exposed=new HashSet<>();
+            for(int i=64;i<67*64;i++)if(l.cells[i]==0){
+                int[] next={i-1,i+1,i-64,i+64};
+                for(int j:next)if(l.cells[j]>0){exposed.add(i);Engine probe=new Engine(events);probe.load(n);probe.launch();probe.balls.clear();
+                    float vx=(j%64-i%64)*1000,vy=(j/64-i/64)*1000;Engine.Ball ball=new Engine.Ball(Levels.LEFT+(i%64+.5f)*Levels.CELL,Levels.TOP+(i/64+.5f)*Levels.CELL,vx,vy);probe.balls.add(ball);int hp=probe.cells[j];probe.update(.012f);check(probe.cells[j]<hp,"Real ball hits brick through window "+n+" at "+i);noSteelOverlap(probe,ball);
+                }
+            }
+            int ports=0;Set<Integer> left=new HashSet<>(exposed);
+            while(!left.isEmpty()){ports++;ArrayDeque<Integer> queue=new ArrayDeque<>();int first=left.iterator().next();left.remove(first);queue.add(first);
+                while(!queue.isEmpty()){int i=queue.remove();for(int j:new int[]{i-1,i+1,i-64,i+64})if(left.remove(j))queue.add(j);}
+            }
+            check(ports>=1&&ports<=3&&ports==l.portCount(),"Exactly 1–3 physical brick-facing windows "+n);
         }
 
         Engine e=new Engine(events);e.launch();e.togglePause();float elapsed=e.elapsed;e.update(1);check(e.elapsed==elapsed,"Pause freezes simulation");e.togglePause();
@@ -77,16 +94,19 @@ public final class EngineTest {
             for(int slot=0;slot<capacity;slot++)e.balls.add(new Engine.Ball(e.level.gateCenter(0)+(slot-(capacity-1)/2f)*Engine.RADIUS*2,Levels.BOTTOM+4,0,-300));
             e.update(.05f);check(e.balls.size()==capacity,"Packed entrance retains all balls "+n);for(Engine.Ball ball:e.balls)check(ball.y<Levels.FLOOR_TOP-Engine.RADIUS&&ball.vy<0,"Two or three full ball diameters pass side by side "+n);
         }
-        // All 76 levels are open even on an upgrade from a completed classic campaign.
+        // All 200 levels are open even on an upgrade from a completed classic campaign.
         Memory memory=new Memory();memory.map.put("unlocked",200);memory.map.put("stars_1",3);memory.map.put("last",199);AppModel a=new AppModel(memory);
         for(int n=1;n<=Levels.COUNT;n++){a.start(n);check(a.game.level.number==n&&a.screen.equals("game"),"Free level access "+n);}
         a.completed(Levels.COUNT,2,700);a.completed(Levels.COUNT,1,500);AppModel b=new AppModel(memory);check(b.stars[Levels.COUNT]==2&&b.best[Levels.COUNT]==700&&b.last==Levels.COUNT,"Best result persistence");check(memory.map.get("stars_1")==3,"Old campaign progress is preserved separately");
         b.start(4);b.game.launch();b.game.score=123;b.action("home");check(b.screen.equals("home")&&b.game.state==Engine.State.PAUSED,"Menu pauses");b.action("play");check(b.game.state==Engine.State.PLAYING&&b.game.score==123,"Continue retains session");
         b.action("levels");check(b.game.state==Engine.State.PAUSED&&b.screen.equals("levels"),"Level picker pauses session");for(int page=0;page<25;page++)b.action("nextpage");check(b.page==AppModel.PAGES-1,"Last page bounded");b.start(Levels.COUNT);b.action("next");check(b.screen.equals("levels"),"Final level next returns to map");
         for(int speed:new int[]{1,2,4}){b.start(1);b.game.launch();b.action("speed"+speed);b.tick(.01f);check(Math.abs(b.game.elapsed-.01f*speed)<.00001,"Simulation speed "+speed);b.action("pause");float time=b.game.elapsed;b.tick(.02f);check(b.game.elapsed==time,"Pause at speed "+speed);}
-        Memory upgrade=new Memory();upgrade.map.put("route4_last",5);upgrade.map.put("route4_stars_5",3);upgrade.map.put("route4_best_5",4321);AppModel migrated=new AppModel(upgrade);int moved=Levels.positionOf(5);check(migrated.last==moved&&migrated.stars[moved]==3&&migrated.best[moved]==4321,"Reordered familiar level retains its stars, score and resume position");migrated.start(moved);migrated.completed(moved,2,100);AppModel reload=new AppModel(upgrade);check(reload.stars[moved]==3&&reload.best[moved]==4321,"Stable IDs retain the best result across subsequent saves");
+        Memory upgrade=new Memory();upgrade.map.put("level_last_id",1000);upgrade.map.put("level_stars_1000",3);upgrade.map.put("level_best_1000",4321);upgrade.map.put("route4_stars_5",2);AppModel migrated=new AppModel(upgrade);
+        check(migrated.last==1&&migrated.totalStars()==0,"Replacement campaign starts fresh without assigning old results to new mazes");
+        check(upgrade.map.get("level_stars_1000")==3&&upgrade.map.get("route4_stars_5")==2,"Historical campaign results remain stored");
+        migrated.start(17);migrated.completed(17,2,555);AppModel reload=new AppModel(upgrade);check(reload.stars[17]==2&&reload.best[17]==555&&reload.last==18,"New stable maze IDs preserve result and resume");
         // No automated campaign playthrough in this release: structural checks and focused regressions only.
-        System.out.println("PASS: "+checks+" focused checks; 300 selectable layouts, 292 different route graphs + eight mosaics; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
+        System.out.println("PASS: "+checks+" focused checks; 200 selectable double-banked mazes with 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
     }
     static void noSteelOverlap(Engine e,Engine.Ball b){
         int cx=(int)((b.x-Levels.LEFT)/Levels.CELL),cy=(int)((b.y-Levels.TOP)/Levels.CELL);

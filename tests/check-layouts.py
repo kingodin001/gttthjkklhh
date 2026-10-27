@@ -1,42 +1,57 @@
 #!/usr/bin/env python3
-"""Static geometry checks only, no automated playthrough."""
-import json,collections,math
+"""Independent structure/port checks, not an automated level playthrough."""
 from pathlib import Path
-root=Path(__file__).resolve().parents[1];levels=json.loads((root/'verification/level-catalog.json').read_text());shapes=set();families=set()
-for l in levels:
- n=l['number'];data=l['cells'];gates=l['gates'];width=l['gateWidths'][0]
- assert 10<width<=16,(n,'entry wider than three balls or narrower than two')
- assert all(data[x]=='#' for x in range(64)),(n,'open top')
- assert all(data[y*64]=='#' and data[y*64+63]=='#' for y in range(68)),(n,'open side')
- assert not any(data[y*64+x]=='#' for y in range(63,67) for x in range(1,63)),(n,'wall squeezes bottom landing chamber')
- # There must be at least TWO full cell rows of clearance between separated walls.
- for x in range(1,63):
-  ys=[y for y in range(68) if data[y*64+x]=='#']
-  assert all(b-a!=2 for a,b in zip(ys,ys[1:])),(n,'one-row pocket',x)
- starts=[66*64+x for a,b in gates for x in range(a,b)]
- def flood(allow):
-  seen=set(starts);q=collections.deque(starts)
-  while q:
-   i=q.popleft();x,y=i%64,i//64
-   for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)]:
-    xx,yy=x+dx,y+dy;j=yy*64+xx
-    if 0<=xx<64 and 0<=yy<67 and j not in seen and allow(data[j]):seen.add(j);q.append(j)
-  return seen
- seen=flood(lambda c:c!='#')
- assert all(not c.isalpha() or i in seen for i,c in enumerate(data)),(n,'sealed bricks')
- if not l['family'].startswith('art:'):
-  empty=flood(lambda c:c=='.')
-  for path in l['routes']:
-   for a,b in zip(path,path[1:]):
-    count=max(2,math.ceil(math.dist(a,b)*2))
-    for j in range(count+1):
-     t=j/count;x=round(a[0]+(b[0]-a[0])*t);y=min(66,round(a[1]+(b[1]-a[1])*t))
-     assert y*64+x in empty,(n,'disconnected initial route',x,y)
-  shape=''.join('#' if c=='#' else '.' if c=='.' else 'x' for c in data)
-  assert shape not in shapes,(n,'duplicate route geometry');shapes.add(shape);families.add(l['family'])
-  for y in range(1,65,8):assert sum(c.isalpha() for c in data[y*64:(y+8)*64])>12,(n,'empty height band')
-assert len(shapes)==292 and len(families)==292
-assert len(set(l['id'] for l in levels))==300
-assert sum(l.get('reference') is not None for l in levels)==18
-summary=f'PASS: 292 different route graphs, including 18 new archive chambers; all 300 have exact 2–3-ball apertures, connected reachable bricks and no one-row wall pockets.'
-print(summary)
+from collections import deque,Counter
+import json
+root=Path(__file__).resolve().parents[1]
+levels=json.loads((root/'verification/level-catalog.json').read_text())
+assert len(levels)==200
+shapes=set();ids=set();families=Counter();counts=Counter()
+def neighbors(i):
+ x,y=i%64,i//64
+ return [j for xx,yy,j in ((x-1,y,i-1),(x+1,y,i+1),(x,y-1,i-64),(x,y+1,i+64)) if 0<=xx<64 and 0<=yy<68]
+def flood(starts,allowed):
+ seen=set(starts);q=deque(starts)
+ while q:
+  i=q.popleft()
+  for j in neighbors(i):
+   if j not in seen and allowed(j):seen.add(j);q.append(j)
+ return seen
+for n,l in enumerate(levels,1):
+ d=l['cells'];assert len(d)==4352 and l['number']==n
+ assert l['id']>=20001 and l['id'] not in ids;ids.add(l['id'])
+ assert l['family'].startswith('maze:');families[l['family']]+=1
+ assert 1<=len(l['ports'])<=3;counts[len(l['ports'])]+=1
+ assert all(d[x]=='#' for x in range(64)),(n,'top is open')
+ assert all(d[y*64]=='#' and d[y*64+63]=='#' for y in range(68)),(n,'side is open')
+ assert 10<l['gateWidths'][0]<=16
+ gate={67*64+x for a,b in l['gates'] for x in range(a,b)}
+ assert {i for i in range(67*64,68*64) if d[i]!='#'}==gate,(n,'extra bottom opening')
+ empty=flood(gate,lambda i:d[i]=='.')
+ assert empty=={i for i,c in enumerate(d) if c=='.'},(n,'disconnected empty corridor')
+ reachable=flood(gate,lambda i:d[i]!='#')
+ assert all(i in reachable for i,c in enumerate(d) if c.isalpha()),(n,'sealed bricks')
+ actual={i for i,c in enumerate(d) if c=='.' and any(d[j].isalpha() for j in neighbors(i))}
+ declared={y*64+x for p in l['ports'] for x,y in p}
+ assert actual==declared,(n,'unintended brick exposure: wall is decorative or missing',actual^declared)
+ remaining=set(actual);window_count=0
+ while remaining:
+  part=flood([min(remaining)],lambda i:i in actual);remaining-=part;window_count+=1
+ assert window_count==len(l['ports']),(n,'window grouping')
+ assert sum(c.isalpha() for c in d)==l['blocks']>=2150,(n,'field is too empty')
+ assert min(l['portDistances'])>=15
+ assert l['tunnelLength']>=70,(n,'route is too short')
+ # Every authored centerline has a full three-cell cross-section. The route
+ # follows four-connected raster stairs at angled segments, never a corner crack.
+ for path in l['routes']:
+  for a,b in zip(path,path[1:]):
+   steps=max(abs(b[0]-a[0]),abs(b[1]-a[1]))
+   for k in range(steps+1):
+    x=round(a[0]+(b[0]-a[0])*k/max(1,steps));y=round(a[1]+(b[1]-a[1])*k/max(1,steps))
+    for dx in (-1,0,1):
+     for dy in (-1,0,1):
+      if 1<=y+dy<=66:assert d[(y+dy)*64+x+dx]=='.',(n,'narrowed corridor',x,y)
+ shape=''.join(c if c in '.#' else 'x' for c in d)
+ assert shape not in shapes,(n,'repeated wall geometry');shapes.add(shape)
+assert len(families)==25 and all(v==8 for v in families.values())
+print(f'PASS: 200 unique enclosed mazes, 25 route families, 1–3 actual brick-facing windows {dict(counts)}; no other exposed bricks, closed top/sides, connected ball-width routes and all bricks structurally reachable.')
