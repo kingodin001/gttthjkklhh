@@ -34,6 +34,8 @@ public final class AppModel implements Engine.Events {
             case "play":if(hasSession&&game.state!=Engine.State.LOST&&game.state!=Engine.State.WON){screen="game";if(game.state==Engine.State.PAUSED)game.togglePause();}else start(last);break;
             case "levels":if(game.state==Engine.State.PLAYING||game.state==Engine.State.READY)game.togglePause();screen="levels";page=(last-1)/PAGE_SIZE;break;
             case "settings":screen="settings";break;
+            case "progress":screen="progress";break;
+            case "giftinfo":screen="giftinfo";break;
             case "home":menu();break;
             case "pause":game.togglePause();break;
             case "resume":if(game.state==Engine.State.PAUSED)game.togglePause();break;

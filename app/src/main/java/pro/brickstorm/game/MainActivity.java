@@ -55,10 +55,21 @@ public final class MainActivity extends Activity {
         Canvas canvas;final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final RectF rect=new RectF();Bitmap board;Canvas boardCanvas;final Paint pixel=new Paint();int[] previous;Engine lastEngine;int lastLevel=-1;
         float[] swarmPoints=new float[Engine.MAX_BALLS*2];
         @Override public void swarm(Engine e){int i=0;for(Engine.Ball b:e.balls){swarmPoints[i++]=b.x;swarmPoints[i++]=b.y;}paint.setColor(0xfff7fbff);paint.setStrokeWidth(Engine.RADIUS*2);paint.setStrokeCap(Paint.Cap.ROUND);canvas.drawPoints(swarmPoints,0,i,paint);paint.setStrokeCap(Paint.Cap.BUTT);}
-        Bitmap artwork;final Bitmap[] thumbnails=new Bitmap[Levels.COUNT];
-        void loadArtwork(Context c){int id=c.getResources().getIdentifier("menu_art","drawable",c.getPackageName());if(id!=0)artwork=BitmapFactory.decodeResource(c.getResources(),id);}
-        @Override public void artwork(){if(artwork==null)return;paint.setColor(Color.WHITE);paint.setFilterBitmap(true);rect.set(0,0,400,820);int crop=(int)(artwork.getHeight()*400f/820f);int left=(artwork.getWidth()-crop)/2;canvas.drawBitmap(artwork,new Rect(left,0,left+crop,artwork.getHeight()),rect,paint);}
+        Bitmap menuArtwork,gameArtwork;final Bitmap[] thumbnails=new Bitmap[Levels.COUNT];
+        void loadArtwork(Context c){
+            BitmapFactory.Options options=new BitmapFactory.Options();options.inScaled=false;
+            int menu=c.getResources().getIdentifier("arcade_menu","drawable",c.getPackageName());
+            int game=c.getResources().getIdentifier("arcade_background","drawable",c.getPackageName());
+            if(menu!=0)menuArtwork=BitmapFactory.decodeResource(c.getResources(),menu,options);
+            if(game!=0)gameArtwork=BitmapFactory.decodeResource(c.getResources(),game,options);
+        }
+        @Override public void artwork(boolean home){Bitmap art=home?menuArtwork:gameArtwork;if(art==null)return;paint.setColor(Color.WHITE);paint.setFilterBitmap(true);rect.set(0,0,400,820);canvas.drawBitmap(art,null,rect,paint);}
+        @Override public void gradient(float x,float y,float w,float h,int top,int bottom,float radius){
+            paint.setColor(Color.WHITE);paint.setShader(new LinearGradient(x,y,x,y+h,top,bottom,Shader.TileMode.CLAMP));
+            rect.set(x,y,x+w,y+h);canvas.drawRoundRect(rect,radius,radius,paint);paint.setShader(null);
+        }
         final Typeface regular=Typeface.create("sans-serif",Typeface.NORMAL),bold=Typeface.create("sans-serif",Typeface.BOLD);
+        @Override public float textWidth(String value,float size,boolean heavy){paint.setTextSize(size);paint.setTypeface(heavy?bold:regular);return paint.measureText(value);}
         @Override public void rect(float x,float y,float w,float h,int color,float radius){paint.setColor(color);rect.set(x,y,x+w,y+h);canvas.drawRoundRect(rect,radius,radius,paint);}
         @Override public void circle(float x,float y,float r,int color){paint.setColor(color);canvas.drawCircle(x,y,r,paint);}
         @Override public void line(float x,float y,float x2,float y2,int color,float width){paint.setColor(color);paint.setStrokeWidth(width);canvas.drawLine(x,y,x2,y2,paint);}
