@@ -21,12 +21,24 @@ public final class RenderCheck implements Painter {
         else if(hp>0){rect(x+.35f,y+.35f,Levels.CELL-.7f,Levels.CELL-.7f,e.level.colors[i],0);rect(x+.55f,y+.4f,Levels.CELL-1.1f,.65f,0x80ffffff,0);if(hp>1)rect(x+2,y+2,1.5f,1.5f,0xffeef5ff,0);}
     }}
     public static void main(String[] args)throws Exception{
-        AppModel a=new AppModel(new EngineTest.Memory());GameRenderer r=new GameRenderer();int access=0;
+        EngineTest.Memory earned=new EngineTest.Memory();for(int i=1;i<=Levels.COUNT;i++)earned.put("level_stars_"+Levels.make(i).id(),1);AppModel a=new AppModel(earned);GameRenderer r=new GameRenderer();int access=0;
         for(int page=0;page<AppModel.PAGES;page++){
             a.screen="levels";a.page=page;RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/menu-page-"+(page+1)+".png"));
             for(int j=0;j<AppModel.PAGE_SIZE&&page*AppModel.PAGE_SIZE+j<Levels.COUNT;j++){int n=page*AppModel.PAGE_SIZE+j+1;float x=24+j%4*90+41,y=205+j/4*119+55;if(!("level:"+n).equals(r.hit(x,y)))throw new AssertionError("Wrong card "+n);a.action(r.hit(x,y));if(a.game.level.number!=n)throw new AssertionError("Wrong level launch");access++;}
             int empty=page*AppModel.PAGE_SIZE+AppModel.PAGE_SIZE-1;if(empty>=Levels.COUNT&&r.hit(335,617)!=null)throw new AssertionError("Phantom last-page card");
         }
+        AppModel fresh=new AppModel(new EngineTest.Memory());
+        for(int page=0;page<AppModel.PAGES;page++){
+            fresh.screen="levels";fresh.page=page;RenderCheck locked=new RenderCheck();r.draw(locked,fresh);
+            if(page==0||page==AppModel.PAGES-1)ImageIO.write(locked.image,"png",new File("verification/locked-page-"+(page+1)+".png"));
+            for(int j=0;j<AppModel.PAGE_SIZE&&page*AppModel.PAGE_SIZE+j<Levels.COUNT;j++){
+                int n=page*AppModel.PAGE_SIZE+j+1;String hit=r.hit(24+j%4*90+41,205+j/4*119+55);
+                if(n==1?!"level:1".equals(hit):hit!=null)throw new AssertionError("Fresh locked card remains clickable "+n);
+            }
+        }
+        fresh.completed(1,2,200);fresh.screen="levels";fresh.page=0;RenderCheck unlocked=new RenderCheck();r.draw(unlocked,fresh);
+        if(!"level:2".equals(r.hit(155,260))||r.hit(245,260)!=null)throw new AssertionError("Win must unlock only the next card");
+        ImageIO.write(unlocked.image,"png",new File("verification/unlocked-after-win.png"));
         for(int n:new int[]{1,16,25,100,107,199,200,201,202,203,204,205,206,207,208,209,210,225,250,275,299,300}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
         a.screen="home";RenderCheck home=new RenderCheck();r.draw(home,a);ImageIO.write(home.image,"png",new File("verification/home.png"));
         if(!"gift:claim".equals(r.hit(293,691)))throw new AssertionError("Gift claim control is missing");
@@ -44,6 +56,6 @@ public final class RenderCheck implements Painter {
         a.screen="home";a.stars[1]=3;a.stars[107]=2;RenderCheck saved=new RenderCheck();r.draw(saved,a);ImageIO.write(saved.image,"png",new File("verification/home-with-progress.png"));if(!"progress".equals(r.hit(50,36)))throw new AssertionError("Live stars counter has no progress action");
         for(int i=1;i<=Levels.COUNT;i++)a.stars[i]=3;RenderCheck full=new RenderCheck();r.draw(full,a);ImageIO.write(full.image,"png",new File("verification/home-complete.png"));if(a.totalStars()!=900)throw new AssertionError("Wrong maximum star total");
         a.screen="settings";RenderCheck settings=new RenderCheck();r.draw(settings,a);ImageIO.write(settings.image,"png",new File("verification/settings.png"));
-        System.out.println("PASS: all "+access+" real level cards are clickable across "+AppModel.PAGES+" pages; approved menu controls, live progress, gift stock/timer and shared renderer screenshots verified internally.");
+        System.out.println("PASS: all "+access+" earned level cards are clickable across "+AppModel.PAGES+" pages; fresh install locks, sequential unlock, approved menu controls, live progress, gift stock/timer and shared renderer screenshots verified internally.");
     }
 }

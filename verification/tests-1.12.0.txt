@@ -1,0 +1,4 @@
+PASS: all 300 mazes have ONE connected brick field, 1–3 brick-facing windows {1: 100, 2: 100, 3: 100}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.
+PASS: 2742627 focused checks; 300 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks 2342..3297; physical multiball grows beyond 512, no weighted groups.
+PASS: 35 reward checks: cooldown, rolling daily cap, capacity, restart/upgrade, clocks, pause, all-ball multiplication, attempt limit and no-waste behavior.
+PASS: 2115 progression checks: locked starts, no skip, engine win events, replay, restart, sparse migration, gifts and final level.

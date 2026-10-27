@@ -79,7 +79,7 @@ public final class GameRenderer {
     }
     private void header(String title,String subtitle){button(20,20,92,44,"‹ Меню","home",false);text(title,128,49,22,WHITE,true);text(subtitle,24,105,12,MUTED,false);}
     private void levels(){
-        header("Уровни","Все 300 уровней доступны. Выбирай любой.");int start=app.page*AppModel.PAGE_SIZE+1;
+        header("Уровни","Пройди уровень, чтобы открыть следующий.");int start=app.page*AppModel.PAGE_SIZE+1;
         p.rect(24,125,352,63,PANEL,16);text("300 ЛАБИРИНТОВ · 1–3 ВЫХОДА",39,150,11,CYAN,true);
         text("Двойные стенки и узкие выходы к кирпичам",39,174,11,WHITE,false);
         for(int j=0;j<AppModel.PAGE_SIZE;j++){
@@ -91,8 +91,15 @@ public final class GameRenderer {
             float cell=1.04f,ox=x+8,oy=y+23;
             p.rect(ox,oy,64*cell,68*cell,0xff12324b,1);
             p.thumbnail(l,ox,oy,64*cell,68*cell);
-            for(int star=0;star<3;star++)center("★",x+25+star*16,y+105,10,app.stars[n]>star?GOLD:0xff58758e,false);
-            buttons.add(new Button(x,y,82,110,"level:"+n));
+            if(app.isUnlocked(n)){
+                for(int star=0;star<3;star++)center("★",x+25+star*16,y+105,10,app.stars[n]>star?GOLD:0xff58758e,false);
+                buttons.add(new Button(x,y,82,110,"level:"+n));
+            }else{
+                p.rect(x+1,y+22,80,86,0xe0102440,10);float cx=x+41,cy=y+56;
+                p.rect(cx-8,cy-14,16,18,MUTED,8);p.rect(cx-5,cy-11,10,16,0xff102440,5);
+                p.rect(cx-11,cy-4,22,18,MUTED,4);p.circle(cx,cy+3,2,0xff102440);p.line(cx,cy+4,cx,cy+8,0xff102440,2);
+                center("Пройди "+(n-1),cx,y+99,8,MUTED,false);
+            }
         }
         if(app.page>0)icon(24,706,"‹","prevpage");center((app.page+1)+" / "+AppModel.PAGES,200,735,15,MUTED,true);if(app.page<AppModel.PAGES-1)icon(332,706,"›","nextpage");
         center("ПРОЙДЕНО "+app.completedCount()+" / "+Levels.COUNT+"   ·   ★ "+app.totalStars()+" / "+(Levels.COUNT*3),200,790,11,MUTED,false);
@@ -103,10 +110,10 @@ public final class GameRenderer {
         button(24,185,352,64,"Звук                         "+(app.sound?"ВКЛ":"ВЫКЛ"),"sound",false);
         button(24,261,352,64,"Следы шара      "+(app.effects?"ВКЛ":"ВЫКЛ"),"effects",false);
         text("КАК ИГРАТЬ",24,384,11,CYAN,true);
-        String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Все уровни открыты. Скорость: ×1 / ×2 / ×4.","Каждый бонус добавляет отдельные шары."};
+        String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Скорость игры: ×1 / ×2 / ×4.","Побеждай — открывай новые уровни."};
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
         p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · 300 уровней",42,697,12,WHITE,false);
-        center("Брикс Шторм  ·  1.11.0",200,795,11,MUTED,false);
+        center("Брикс Шторм  ·  1.12.0",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format("%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");

@@ -1,0 +1,27 @@
+{
+  "version": "1.12.0",
+  "versionCode": 15,
+  "package": "pro.brickstorm.game",
+  "minSdk": 26,
+  "targetSdk": 35,
+  "sha256": "69543b7e6c55ac51e66eb8a1cb8b819b79fe7c4997b85c197065dbe7dcf2c7db",
+  "bytes": 3851213,
+  "signatureVerifiedApis": [
+    26,
+    28,
+    35
+  ],
+  "sameSigningCertificateAndLineage": true,
+  "packagedArtworkMatchesApprovedAssets": true,
+  "oldArtworkRemoved": true,
+  "iconUnchanged": true,
+  "all300LevelCellsAndPhysicsUnchanged": true,
+  "sequentialUnlockVerified": true,
+  "allOpenTestFlagRemoved": true,
+  "automatedChecksPassed": true,
+  "sharedRendererVisuallyReviewed": true,
+  "physicalDeviceTested": false,
+  "emulatorTested": false,
+  "fullPlaythrough": false,
+  "publishedToRuStore": false
+}

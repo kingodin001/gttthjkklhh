@@ -94,17 +94,17 @@ public final class EngineTest {
             for(int slot=0;slot<capacity;slot++)e.balls.add(new Engine.Ball(e.level.gateCenter(0)+(slot-(capacity-1)/2f)*Engine.RADIUS*2,Levels.BOTTOM+4,0,-300));
             e.update(.05f);check(e.balls.size()==capacity,"Packed entrance retains all balls "+n);for(Engine.Ball ball:e.balls)check(ball.y<Levels.FLOOR_TOP-Engine.RADIUS&&ball.vy<0,"One or two full ball diameters pass side by side "+n);
         }
-        // All 200 levels are open even on an upgrade from a completed classic campaign.
+        // Earn access in order; obsolete all-open flags do not grant campaign progress.
         Memory memory=new Memory();memory.map.put("unlocked",200);memory.map.put("stars_1",3);memory.map.put("last",199);AppModel a=new AppModel(memory);
-        for(int n=1;n<=Levels.COUNT;n++){a.start(n);check(a.game.level.number==n&&a.screen.equals("game"),"Free level access "+n);}
+        for(int n=1;n<=Levels.COUNT;n++){check(a.isUnlocked(n),"Earned level access "+n);if(n<Levels.COUNT)check(!a.isUnlocked(n+1),"Next level is locked before winning "+n);a.start(n);check(a.game.level.number==n&&a.screen.equals("game"),"Sequential level launch "+n);a.completed(n,1,100);}
         a.completed(Levels.COUNT,2,700);a.completed(Levels.COUNT,1,500);AppModel b=new AppModel(memory);check(b.stars[Levels.COUNT]==2&&b.best[Levels.COUNT]==700&&b.last==Levels.COUNT,"Best result persistence");check(memory.map.get("stars_1")==3,"Old campaign progress is preserved separately");
         b.start(4);b.game.launch();b.game.score=123;b.action("home");check(b.screen.equals("home")&&b.game.state==Engine.State.PAUSED,"Menu pauses");b.action("play");check(b.game.state==Engine.State.PLAYING&&b.game.score==123,"Continue retains session");
-        b.action("levels");check(b.game.state==Engine.State.PAUSED&&b.screen.equals("levels"),"Level picker pauses session");for(int page=0;page<25;page++)b.action("nextpage");check(b.page==AppModel.PAGES-1,"Last page bounded");b.start(Levels.COUNT);b.action("next");check(b.screen.equals("levels"),"Final level next returns to map");
+        b.action("levels");check(b.game.state==Engine.State.PAUSED&&b.screen.equals("levels"),"Level picker pauses session");for(int page=0;page<25;page++)b.action("nextpage");check(b.page==AppModel.PAGES-1,"Last page bounded");b.start(Levels.COUNT);b.game.state=Engine.State.WON;b.action("next");check(b.screen.equals("levels"),"Final level next returns to map");
         for(int speed:new int[]{1,2,4}){b.start(1);b.game.launch();b.action("speed"+speed);b.tick(.01f);check(Math.abs(b.game.elapsed-.01f*speed)<.00001,"Simulation speed "+speed);b.action("pause");float time=b.game.elapsed;b.tick(.02f);check(b.game.elapsed==time,"Pause at speed "+speed);}
         Memory upgrade=new Memory();upgrade.map.put("level_last_id",1000);upgrade.map.put("level_stars_1000",3);upgrade.map.put("level_best_1000",4321);upgrade.map.put("route4_stars_5",2);AppModel migrated=new AppModel(upgrade);
         check(migrated.last==1&&migrated.totalStars()==0,"Replacement campaign starts fresh without assigning old results to new mazes");
         check(upgrade.map.get("level_stars_1000")==3&&upgrade.map.get("route4_stars_5")==2,"Historical campaign results remain stored");
-        migrated.start(17);migrated.completed(17,2,555);AppModel reload=new AppModel(upgrade);check(reload.stars[17]==2&&reload.best[17]==555&&reload.last==18,"New stable maze IDs preserve result and resume");
+        migrated.completed(16,1,100);migrated.start(17);migrated.completed(17,2,555);AppModel reload=new AppModel(upgrade);check(reload.stars[17]==2&&reload.best[17]==555&&reload.last==18,"New stable maze IDs preserve result and resume");
         // No automated campaign playthrough in this release: structural checks and focused regressions only.
         System.out.println("PASS: "+checks+" focused checks; 300 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
     }

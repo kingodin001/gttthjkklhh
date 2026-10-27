@@ -23,7 +23,7 @@ public final class RewardTest {
         a=new AppModel(s);check(a.gifts.charges()==2&&!a.gifts.canClaim(),"Inventory and cooldown survive app restart, including post-2038 timestamps");
         s.now+=14400;a.action("gift:claim");check(a.gifts.charges()==3&&a.gifts.claimsLeft()==0,"Three claims in rolling 24 hours");
         check(!a.gifts.canClaim(),"Full inventory is capped at three");
-        a.start(20);check(!a.useGift()&&a.gifts.charges()==3,"Ready ball does not consume a gift");a.game.launch();
+        a.start(1);check(!a.useGift()&&a.gifts.charges()==3,"Ready ball does not consume a gift");a.game.launch();
         a.game.balls.clear();a.game.balls.add(new Engine.Ball(60,580,100,-180));a.game.balls.add(new Engine.Ball(240,610,-70,210));
         check(a.useGift()&&a.game.balls.size()==6&&a.gifts.charges()==2,"Gift triples EVERY flying ball and consumes one charge");
         for(float x:new float[]{60,240}){int copies=0;for(Engine.Ball b:a.game.balls)if(b.x==x)copies++;check(copies==3,"Gift copies each flying ball at its own position");}
@@ -41,14 +41,14 @@ public final class RewardTest {
         check(a.gifts.canClaim()&&a.gifts.claimsLeft()==1,"Oldest claim expires exactly at 24 hours");a.action("gift:claim");check(a.gifts.charges()==1&&a.gifts.claimsLeft()==0,"Rolling-day limit applies after next claim");
         a=new AppModel(s);check(a.gifts.charges()==1&&!a.gifts.canClaim(),"Restart cannot replenish daily allowance");
         s.now-=86400;check(!a.gifts.canClaim()&&a.gifts.waitSeconds()>0,"Clock rollback cannot grant an early gift");
-        a.start(20);a.game.launch();a.action("speed4");long wait=a.gifts.waitSeconds();for(int i=0;i<100;i++)a.tick(.01f);check(a.gifts.waitSeconds()==wait,"Speed ×4 never speeds up gift cooldown");
+        a.start(1);a.game.launch();a.action("speed4");long wait=a.gifts.waitSeconds();for(int i=0;i<100;i++)a.tick(.01f);check(a.gifts.waitSeconds()==wait,"Speed ×4 never speeds up gift cooldown");
         a.game.state=Engine.State.WON;check(!a.useGift(),"Win screen cannot spend charge");a.game.state=Engine.State.LOST;check(!a.useGift(),"Loss screen cannot spend charge");
         ClockStorage full=new ClockStorage();AppModel f=collected(full);full.now+=14400;f.action("gift:claim");full.now+=14400;f.action("gift:claim");full.now+=86400;
         check(!f.gifts.claim()&&f.gifts.charges()==3,"Full inventory blocks new gifts even when cooldown is over");
         f.start(1);f.game.launch();check(f.useGift()&&f.gifts.charges()==2,"Stored gifts can be used after a day");f.action("home");f.action("gift:claim");check(f.gifts.charges()==3,"One free inventory slot can receive an available gift");
         ClockStorage upgrade=new ClockStorage();upgrade.data.put("level_stars_20200",3);upgrade.data.put("level_best_20200",999);upgrade.data.put("level_last_id",20200);AppModel upgraded=new AppModel(upgrade);
         check(upgraded.stars[200]==3&&upgraded.best[200]==999&&upgraded.last==200,"First 200 scores and resume survive expansion to 300");
-        upgraded.start(300);check(upgraded.game.level.number==300,"All new levels are directly available");
+        check(upgraded.isUnlocked(200)&&upgraded.isUnlocked(201)&&!upgraded.isUnlocked(300),"Earned scores unlock the immediate next level without opening the whole new campaign");upgraded.start(201);check(upgraded.game.level.number==201,"First new level opens after previously completed level 200");
         System.out.println("PASS: "+checks+" reward checks: cooldown, rolling daily cap, capacity, restart/upgrade, clocks, pause, all-ball multiplication, attempt limit and no-waste behavior.");
     }
 }

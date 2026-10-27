@@ -18,11 +18,15 @@ public final class AppModel implements Engine.Events {
             int id=Levels.make(i).id();int oldStars=id<=58?s.get("route4_stars_"+id,0):0,oldBest=id<=58?s.get("route4_best_"+id,0):0;
             stars[i]=Math.max(0,Math.min(3,s.get("level_stars_"+id,oldStars)));best[i]=Math.max(0,s.get("level_best_"+id,oldBest));
         }
+        // A level selected in the former all-open test build is not earned progress.
+        if(!isUnlocked(last)){last=nextCampaignLevel();storage.put("level_last_id",Levels.make(last).id());}
         game=new Engine(this);gifts=new RewardBank(s);
     }
+    public boolean isUnlocked(int n){return n>=1&&n<=Levels.COUNT&&(n==1||stars[n]>0||stars[n-1]>0);}
+    public int nextCampaignLevel(){int n=1;while(n<Levels.COUNT&&stars[n]>0)n++;return n;}
     public int totalStars(){int sum=0;for(int i:stars)sum+=i;return sum;}
     public int completedCount(){int sum=0;for(int i:stars)if(i>0)sum++;return sum;}
-    public void start(int n){if(n<1||n>Levels.COUNT)return;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;giftUsed=false;screen="game";}
+    public void start(int n){if(!isUnlocked(n))return;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;giftUsed=false;screen="game";}
     public boolean canUseGift(){return screen.equals("game")&&game.state==Engine.State.PLAYING&&!giftUsed&&gifts.charges()>0&&!game.balls.isEmpty()&&game.balls.size()<=Engine.MAX_BALLS/3;}
     public boolean useGift(){if(!canUseGift()||!gifts.spend())return false;game.power(1);giftUsed=true;return true;}
     public void tick(float dt){for(int i=0;i<speed;i++)game.update(dt);}
@@ -40,7 +44,7 @@ public final class AppModel implements Engine.Events {
             case "pause":game.togglePause();break;
             case "resume":if(game.state==Engine.State.PAUSED)game.togglePause();break;
             case "retry":start(game.level.number);break;
-            case "next":if(game.level.number<Levels.COUNT)start(game.level.number+1);else{screen="levels";page=PAGES-1;}break;
+            case "next":if(game.state==Engine.State.WON){if(game.level.number<Levels.COUNT)start(game.level.number+1);else{screen="levels";page=PAGES-1;}}break;
             case "prevpage":page=Math.max(0,page-1);break;
             case "nextpage":page=Math.min(PAGES-1,page+1);break;
             case "sound":sound=!sound;storage.put("sound",sound?1:0);break;
@@ -53,5 +57,5 @@ public final class AppModel implements Engine.Events {
     public void menu(){if(game.state==Engine.State.PLAYING||game.state==Engine.State.READY)game.togglePause();screen="home";}
     public void back(){if(screen.equals("game")&&(game.state==Engine.State.PLAYING||game.state==Engine.State.READY))game.togglePause();else menu();}
     @Override public void sound(int kind){if(sound)storage.sound(kind);}
-    @Override public void completed(int level,int value,int score){hasSession=false;stars[level]=Math.max(stars[level],value);best[level]=Math.max(best[level],score);storage.put("level_stars_"+Levels.make(level).id(),stars[level]);storage.put("level_best_"+Levels.make(level).id(),best[level]);last=Math.min(Levels.COUNT,level+1);storage.put("level_last_id",Levels.make(last).id());}
+    @Override public void completed(int level,int value,int score){if(level<1||level>Levels.COUNT||value<1)return;hasSession=false;stars[level]=Math.max(stars[level],Math.min(3,value));best[level]=Math.max(best[level],score);storage.put("level_stars_"+Levels.make(level).id(),stars[level]);storage.put("level_best_"+Levels.make(level).id(),best[level]);last=Math.min(Levels.COUNT,level+1);storage.put("level_last_id",Levels.make(last).id());}
 }
