@@ -1,0 +1,1 @@
+PASS: all 300 real level cards are clickable across 19 pages; shared renderer screenshots exported for internal visual inspection.

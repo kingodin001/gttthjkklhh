@@ -8,7 +8,7 @@ public final class EngineTest {
     static final class Memory implements AppModel.Storage{final Map<String,Integer> map=new HashMap<>();public int get(String k,int f){return map.getOrDefault(k,f);}public void put(String k,int v){map.put(k,v);}public void sound(int k){}}
     public static void main(String[] args){
         Set<Integer> hashes=new HashSet<>();Set<String> names=new HashSet<>();float previous=0,width=160;int min=99999,max=0,art=0;
-        check(Levels.COUNT==200,"200 new enclosed mazes");
+        check(Levels.COUNT==300,"300 enclosed mazes");
         for(int n=1;n<=Levels.COUNT;n++){
             Levels.Layout l=Levels.make(n),again=Levels.make(n);check(Arrays.equals(l.cells,again.cells),"Deterministic level "+n);check(l.cells.length==64*68,"Grid size");int count=0;
             for(int v:l.cells){check(v>=-1&&v<=2,"Valid cell");if(v>0)count++;}check(count==l.blocks&&count>=200,"Block count "+n);check(l.speed>previous&&l.paddleWidth<width,"Monotonic handling difficulty "+n);previous=l.speed;width=l.paddleWidth;
@@ -106,7 +106,7 @@ public final class EngineTest {
         check(upgrade.map.get("level_stars_1000")==3&&upgrade.map.get("route4_stars_5")==2,"Historical campaign results remain stored");
         migrated.start(17);migrated.completed(17,2,555);AppModel reload=new AppModel(upgrade);check(reload.stars[17]==2&&reload.best[17]==555&&reload.last==18,"New stable maze IDs preserve result and resume");
         // No automated campaign playthrough in this release: structural checks and focused regressions only.
-        System.out.println("PASS: "+checks+" focused checks; 200 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
+        System.out.println("PASS: "+checks+" focused checks; 300 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
     }
     static void noSteelOverlap(Engine e,Engine.Ball b){
         int cx=(int)((b.x-Levels.LEFT)/Levels.CELL),cy=(int)((b.y-Levels.TOP)/Levels.CELL);

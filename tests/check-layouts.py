@@ -5,7 +5,7 @@ from collections import deque,Counter
 import json
 root=Path(__file__).resolve().parents[1]
 levels=json.loads((root/'verification/level-catalog.json').read_text())
-assert len(levels)==200
+assert len(levels)==300
 shapes=set();ids=set();families=Counter();counts=Counter()
 def neighbors(i):
  x,y=i%64,i//64
@@ -62,5 +62,6 @@ for n,l in enumerate(levels,1):
       if 1<=y+dy<=66:assert d[(y+dy)*64+x+dx]=='.',(n,'narrowed corridor',x,y)
  shape=''.join(c if c in '.#' else 'x' for c in d)
  assert shape not in shapes,(n,'repeated wall geometry');shapes.add(shape)
-assert len(families)==25 and all(v==8 for v in families.values())
-print(f'PASS: all 200 mazes have ONE connected brick field, 1–3 brick-facing windows {dict(counts)}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.')
+assert len(families)==35
+assert all(families["maze:"+str(i)]==(8 if i<25 else 10) for i in range(35))
+print(f'PASS: all 300 mazes have ONE connected brick field, 1–3 brick-facing windows {dict(counts)}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.')

@@ -23,13 +23,22 @@ public final class GameRenderer {
         center(label,x+w/2,y+h/2+5,16,primary?0xff163449:WHITE,true);buttons.add(new Button(x,y,w,h,action));
     }
     private void icon(float x,float y,String label,String action){button(x,y,44,44,label,action,false);}
+    private void disabled(float x,float y,float w,float h,String label){p.rect(x,y,w,h,0xee23435c,13);center(label,x+w/2,y+h/2+4,13,0xffa8becd,true);}
     private void brand(float x,float y){for(int k=0;k<6;k++)p.rect(x+(k%3)*8,y+(k/3)*8,6,6,k==5?CYAN:LIME,1);text("БРИКС ШТОРМ",x+32,y+14,13,WHITE,true);}
     private void home(){
-        center("200 УРОВНЕЙ · ЛАБИРИНТЫ И ОТСКОКИ",200,41,10,0xffbcecff,true);
+        center("300 УРОВНЕЙ · ЛАБИРИНТЫ И ОТСКОКИ",200,41,10,0xffbcecff,true);
         center("БРИКС",200,105,48,WHITE,true);center("ШТОРМ",200,156,48,GOLD,true);
         center("Один удар. Целый каскад.",200,185,14,0xffe6f4ff,false);
         button(44,216,312,58,app.hasSession&&app.game.state!=Engine.State.LOST?"ПРОДОЛЖИТЬ  ›":"ИГРАТЬ  ›","play",true);
-        center("Уровень "+(app.hasSession?app.game.level.number:app.last)+"  /  200",200,299,12,WHITE,true);
+        center("Уровень "+(app.hasSession?app.game.level.number:app.last)+"  /  300",200,299,12,WHITE,true);
+        p.rect(26,337,348,204,0xe51b3d56,20);
+        p.circle(56,369,16,GOLD);center("×3",56,374,14,BG,true);text("ПОДАРОК ДЛЯ КАСКАДА",82,374,13,WHITE,true);
+        text("В запасе: "+app.gifts.charges()+" / 3",43,408,13,GOLD,true);
+        text("Ещё "+app.gifts.claimsLeft()+" получений за 24 ч",200,408,11,MUTED,false);
+        if(app.gifts.canClaim())button(43,425,314,46,"ЗАБРАТЬ ×3","gift:claim",true);
+        else disabled(43,425,314,46,app.gifts.charges()==3?"ЗАПАС ПОЛОН · 3 / 3":"Следующий через "+app.gifts.countdown());
+        center("До 3 подарков за 24 часа · интервал 4 часа",200,495,11,MUTED,false);
+        center("Кнопка ×3 в игре · один раз за попытку",200,519,10,MUTED,false);
         p.rect(25,641,350,142,0xb31c3c55,22);
         text("ТВОИ РЕЗУЛЬТАТЫ",43,669,10,CYAN,true);text("★ "+app.totalStars(),306,670,14,GOLD,true);
         p.rect(43,684,314,4,0xff46657a,2);p.rect(43,684,Math.max(4,app.completedCount()/(float)Levels.COUNT*314),4,GOLD,2);
@@ -38,8 +47,8 @@ public final class GameRenderer {
     }
     private void header(String title,String subtitle){button(20,20,92,44,"‹ Меню","home",false);text(title,128,49,22,WHITE,true);text(subtitle,24,105,12,MUTED,false);}
     private void levels(){
-        header("Уровни","Все 200 уровней доступны. Выбирай любой.");int start=app.page*AppModel.PAGE_SIZE+1;
-        p.rect(24,125,352,63,PANEL,16);text("200 ЛАБИРИНТОВ · 1–3 ВЫХОДА",39,150,11,CYAN,true);
+        header("Уровни","Все 300 уровней доступны. Выбирай любой.");int start=app.page*AppModel.PAGE_SIZE+1;
+        p.rect(24,125,352,63,PANEL,16);text("300 ЛАБИРИНТОВ · 1–3 ВЫХОДА",39,150,11,CYAN,true);
         text("Двойные стенки и узкие выходы к кирпичам",39,174,11,WHITE,false);
         for(int j=0;j<AppModel.PAGE_SIZE;j++){
             int n=start+j;if(n>Levels.COUNT)break;Levels.Layout l=Levels.make(n);float x=24+(j%4)*90,y=205+(j/4)*119;boolean active=n==app.last;
@@ -64,8 +73,8 @@ public final class GameRenderer {
         text("КАК ИГРАТЬ",24,384,11,CYAN,true);
         String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Все уровни открыты. Скорость: ×1 / ×2 / ×4.","Каждый бонус добавляет отдельные шары."};
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
-        p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · 200 уровней",42,697,12,WHITE,false);
-        center("Брикс Шторм  ·  1.9.0",200,795,11,MUTED,false);
+        p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · 300 уровней",42,697,12,WHITE,false);
+        center("Брикс Шторм  ·  1.10.0",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format("%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,e.level.title().length()>20?15:18,WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");
@@ -104,7 +113,9 @@ public final class GameRenderer {
         text("ШАРЫ  "+e.ballCountText(),18,565,10,MUTED,true);text(e.level.difficulty(),273,565,9,CYAN,true);
         if(e.noticeTime>0)center(e.notice,200,599,9,LIME,true);
         else if(e.state==Engine.State.READY)center(e.level.hint(),200,586,8,MUTED,false);
-        p.line(16,750,384,750,EDGE,1);button(16,766,114,40,"Уровни","levels",false);button(142,766,72,40,"×1","speed1",app.speed==1);button(222,766,72,40,"×2","speed2",app.speed==2);button(302,766,80,40,"×4","speed4",app.speed==4);
+        p.line(16,750,384,750,EDGE,1);button(16,766,96,40,"Уровни","levels",false);button(120,766,46,40,"×1","speed1",app.speed==1);button(174,766,46,40,"×2","speed2",app.speed==2);button(228,766,46,40,"×4","speed4",app.speed==4);
+        String giftLabel=app.giftUsed?"×3  ✓":"×3 · "+app.gifts.charges();
+        if(app.canUseGift())button(282,766,102,40,giftLabel,"gift:use",true);else disabled(282,766,102,40,giftLabel);
         if(e.state==Engine.State.PAUSED)overlay("ПАУЗА","Уровень "+e.level.number+" · "+e.level.title(),"Продолжить","resume","Карта уровней","levels",false);
         else if(e.state==Engine.State.WON)overlay(e.level.number==Levels.COUNT?"ШТОРМ ПОКОРЁН":"УРОВЕНЬ ПРОЙДЕН","★ "+e.stars()+" / 3     ·     СЧЁТ "+e.score,e.level.number==Levels.COUNT?"Карта уровней":"Следующий уровень",e.level.number==Levels.COUNT?"levels":"next","Пройти ещё раз","retry",true);
         else if(e.state==Engine.State.LOST)overlay("ЕЩЁ ОДНА ПОПЫТКА?","Разрушено "+Math.round(e.progress()*100)+"% блоков","Попробовать снова","retry","Карта уровней","levels",false);

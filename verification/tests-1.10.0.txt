@@ -1,0 +1,7 @@
+Wrote 300 mazes; first 200 preserved, 100 from ten new route families; ports {1: 100, 2: 100, 3: 100} ; bricks 2342 .. 3297 ; tunnel reach 95 .. 331
+PASS: all 300 mazes have ONE connected brick field, 1–3 brick-facing windows {1: 100, 2: 100, 3: 100}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.
+PASS: 2742028 focused checks; 300 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks 2342..3297; physical multiball grows beyond 512, no weighted groups.
+PASS: 34 reward checks: cooldown, rolling daily cap, capacity, restart/upgrade, clocks, pause, all-ball multiplication, attempt limit and no-waste behavior.
+PASS: first 200 grids unchanged; clean-checkout regeneration is deterministic.
+PASS: all 300 real level cards are clickable across 19 pages; shared renderer screenshots exported for internal visual inspection.
+PASS: release signature and manifest verified for API26/28/35; original signing identity retained.

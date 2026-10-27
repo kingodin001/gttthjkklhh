@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the 200 enclosed mazes; no old campaign is included."""
+"""Build the 300 enclosed mazes; no old campaign is included."""
 from pathlib import Path
 import runpy
 if __name__=='__main__':

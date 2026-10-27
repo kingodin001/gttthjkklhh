@@ -22,6 +22,7 @@ public final class MainActivity extends Activity {
 
     static final class GameView extends View implements AppModel.Storage {
         final SharedPreferences prefs;final Audio audio;final AppModel model;final GameRenderer renderer=new GameRenderer();final AndroidPainter painter=new AndroidPainter();
+        final long rewardWallBase=System.currentTimeMillis(),rewardMonoBase=android.os.SystemClock.elapsedRealtime();
         private int insetTop,insetBottom,insetLeft,insetRight;private float scale=1,dx=0,dy=0;private long lastFrame=0;private boolean running;private String downAction;private int pointer=-1;
         GameView(Context c){super(c);prefs=c.getSharedPreferences("campaign_v1",Context.MODE_PRIVATE);audio=new Audio(c);model=new AppModel(this);painter.loadArtwork(c);setFocusable(true);setContentDescription("Брикс Шторм. Арканоид. Управление касанием и движением пальца.");setLayerType(View.LAYER_TYPE_HARDWARE,null);
             setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());insetTop=i.top;insetBottom=i.bottom;insetLeft=i.left;insetRight=i.right;}else{insetTop=insets.getSystemWindowInsetTop();insetBottom=insets.getSystemWindowInsetBottom();insetLeft=insets.getSystemWindowInsetLeft();insetRight=insets.getSystemWindowInsetRight();}invalidate();return insets;});
@@ -45,6 +46,9 @@ public final class MainActivity extends Activity {
         @Override public boolean performClick(){super.performClick();return true;}
         @Override public int get(String k,int fallback){return prefs.getInt(k,fallback);}
         @Override public void put(String k,int value){prefs.edit().putInt(k,value).apply();}
+        @Override public long nowSeconds(){return (rewardWallBase+android.os.SystemClock.elapsedRealtime()-rewardMonoBase)/1000L;}
+        @Override public long getLong(String k,long fallback){return prefs.getLong(k,fallback);}
+        @Override public void saveGiftState(int stock,long lastSeen,long[] claims){SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",stock).putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);edit.commit();}
         @Override public void sound(int kind){audio.play(kind);}
     }
     static final class AndroidPainter implements Painter {

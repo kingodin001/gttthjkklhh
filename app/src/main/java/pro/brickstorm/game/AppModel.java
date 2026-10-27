@@ -1,9 +1,16 @@
 package pro.brickstorm.game;
 public final class AppModel implements Engine.Events {
-    public interface Storage {int get(String key,int fallback);void put(String key,int value);void sound(int kind);}
+    public interface Storage {
+        int get(String key,int fallback);void put(String key,int value);void sound(int kind);
+        default long nowSeconds(){return System.currentTimeMillis()/1000L;}
+        default long getLong(String key,long fallback){return ((long)get(key+"_hi",(int)(fallback>>>32))<<32)|(get(key+"_lo",(int)fallback)&0xffffffffL);}
+        default void putLong(String key,long value){put(key+"_hi",(int)(value>>>32));put(key+"_lo",(int)value);}
+        default void saveGiftState(int stock,long lastSeen,long[] claims){put("gift_stock",stock);putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)putLong("gift_claim_"+i,claims[i]);}
+    }
     public static final int PAGE_SIZE=16,PAGES=(Levels.COUNT+PAGE_SIZE-1)/PAGE_SIZE;
     public final Storage storage;public final Engine game;public String screen="home";public int page=0,last=1,speed=1;public boolean sound=true,effects=true,hasSession=false;
     public final int[] stars=new int[Levels.COUNT+1],best=new int[Levels.COUNT+1];
+    public final RewardBank gifts;public boolean giftUsed=false;
     // New campaign has its own score namespace. Existing classic results stay on disk.
     public AppModel(Storage s){
         storage=s;last=Levels.positionOf(s.get("level_last_id",s.get("route4_last",1)));sound=s.get("sound",1)==1;effects=s.get("effects",1)==1;
@@ -11,15 +18,19 @@ public final class AppModel implements Engine.Events {
             int id=Levels.make(i).id();int oldStars=id<=58?s.get("route4_stars_"+id,0):0,oldBest=id<=58?s.get("route4_best_"+id,0):0;
             stars[i]=Math.max(0,Math.min(3,s.get("level_stars_"+id,oldStars)));best[i]=Math.max(0,s.get("level_best_"+id,oldBest));
         }
-        game=new Engine(this);
+        game=new Engine(this);gifts=new RewardBank(s);
     }
     public int totalStars(){int sum=0;for(int i:stars)sum+=i;return sum;}
     public int completedCount(){int sum=0;for(int i:stars)if(i>0)sum++;return sum;}
-    public void start(int n){if(n<1||n>Levels.COUNT)return;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;screen="game";}
+    public void start(int n){if(n<1||n>Levels.COUNT)return;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;giftUsed=false;screen="game";}
+    public boolean canUseGift(){return screen.equals("game")&&game.state==Engine.State.PLAYING&&!giftUsed&&gifts.charges()>0&&!game.balls.isEmpty()&&game.balls.size()<=Engine.MAX_BALLS/3;}
+    public boolean useGift(){if(!canUseGift()||!gifts.spend())return false;game.power(1);giftUsed=true;return true;}
     public void tick(float dt){for(int i=0;i<speed;i++)game.update(dt);}
     public void action(String a){
         if(a.startsWith("level:")){start(Integer.parseInt(a.substring(6)));return;}
         switch(a){
+            case "gift:claim":if(screen.equals("home")&&gifts.claim())sound(3);break;
+            case "gift:use":useGift();break;
             case "play":if(hasSession&&game.state!=Engine.State.LOST&&game.state!=Engine.State.WON){screen="game";if(game.state==Engine.State.PAUSED)game.togglePause();}else start(last);break;
             case "levels":if(game.state==Engine.State.PLAYING||game.state==Engine.State.READY)game.togglePause();screen="levels";page=(last-1)/PAGE_SIZE;break;
             case "settings":screen="settings";break;

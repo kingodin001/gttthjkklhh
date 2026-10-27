@@ -1,8 +1,8 @@
 package pro.brickstorm.game;
 
-/** 200 densely filled puzzles with fully enclosed maze corridors. */
+/** 300 densely filled puzzles with fully enclosed maze corridors. */
 public final class Levels {
-    public static final int COUNT=200, COLS=64, ROWS=68;
+    public static final int COUNT=300, COLS=64, ROWS=68;
     public static final float LEFT=16, TOP=146, CELL=5.75f, RIGHT=384, BOTTOM=TOP+ROWS*CELL, FLOOR_TOP=TOP+67*CELL;
     private static final Layout[] CACHE=new Layout[COUNT];
     public static final int[] PALETTE={0xffff705b,0xffffb344,0xffffe16b,0xff75d8bc,0xff42d5e4,0xff7998ef,0xffbfa1ff,0xfff695c5,0xffecf1fa,0xff7494b7,0xffb7e767,0xffe4ba70,0xffa8dffa,0xffed8a9b,0xff7bc8d5,0xffd6beec};

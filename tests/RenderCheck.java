@@ -22,8 +22,17 @@ public final class RenderCheck implements Painter {
             for(int j=0;j<AppModel.PAGE_SIZE&&page*AppModel.PAGE_SIZE+j<Levels.COUNT;j++){int n=page*AppModel.PAGE_SIZE+j+1;float x=24+j%4*90+41,y=205+j/4*119+55;if(!("level:"+n).equals(r.hit(x,y)))throw new AssertionError("Wrong card "+n);a.action(r.hit(x,y));if(a.game.level.number!=n)throw new AssertionError("Wrong level launch");access++;}
             int empty=page*AppModel.PAGE_SIZE+AppModel.PAGE_SIZE-1;if(empty>=Levels.COUNT&&r.hit(335,617)!=null)throw new AssertionError("Phantom last-page card");
         }
-        for(int n:new int[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,50,75,100,125,150,175,199,200}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
+        for(int n:new int[]{1,16,25,100,199,200,201,202,203,204,205,206,207,208,209,210,225,250,275,299,300}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
         a.screen="home";RenderCheck home=new RenderCheck();r.draw(home,a);ImageIO.write(home.image,"png",new File("verification/home.png"));
+        if(!"gift:claim".equals(r.hit(200,448)))throw new AssertionError("Gift claim control is missing");
+        a.action("gift:claim");RenderCheck claimed=new RenderCheck();r.draw(claimed,a);ImageIO.write(claimed.image,"png",new File("verification/home-claimed.png"));
+        if(r.hit(200,448)!=null||a.gifts.charges()!=1)throw new AssertionError("Cooldown card must not claim again");
+        a.start(201);RenderCheck ready=new RenderCheck();r.draw(ready,a);if(r.hit(330,785)!=null)throw new AssertionError("Gift use must wait for launched ball");
+        a.game.launch();RenderCheck flying=new RenderCheck();r.draw(flying,a);ImageIO.write(flying.image,"png",new File("verification/gift-available.png"));
+        if(!"gift:use".equals(r.hit(330,785)))throw new AssertionError("Gift use control is missing");
+        if(!"speed4".equals(r.hit(250,785))||!"levels".equals(r.hit(60,785)))throw new AssertionError("Gift button overlaps existing controls");
+        a.action("gift:use");RenderCheck used=new RenderCheck();r.draw(used,a);ImageIO.write(used.image,"png",new File("verification/gift-used.png"));
+        if(r.hit(330,785)!=null||a.gifts.charges()!=0)throw new AssertionError("Spent gift remains actionable");
         a.screen="settings";RenderCheck settings=new RenderCheck();r.draw(settings,a);ImageIO.write(settings.image,"png",new File("verification/settings.png"));
         System.out.println("PASS: all "+access+" real level cards are clickable across "+AppModel.PAGES+" pages; shared renderer screenshots exported for internal visual inspection.");
     }
