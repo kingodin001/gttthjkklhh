@@ -24,13 +24,20 @@ for n,l in enumerate(levels,1):
  assert 1<=len(l['ports'])<=3;counts[len(l['ports'])]+=1
  assert all(d[x]=='#' for x in range(64)),(n,'top is open')
  assert all(d[y*64]=='#' and d[y*64+63]=='#' for y in range(68)),(n,'side is open')
- assert 10<l['gateWidths'][0]<=16
+ assert l['gateWidths'][0] in (5.75,11.5),(n,'entry is not exactly one or two blocks wide')
+ assert l['gateWidths'][0]==sum(b-a for a,b in l['gates'])*5.75
  gate={67*64+x for a,b in l['gates'] for x in range(a,b)}
  assert {i for i in range(67*64,68*64) if d[i]!='#'}==gate,(n,'extra bottom opening')
  empty=flood(gate,lambda i:d[i]=='.')
  assert empty=={i for i,c in enumerate(d) if c=='.'},(n,'disconnected empty corridor')
  reachable=flood(gate,lambda i:d[i]!='#')
  assert all(i in reachable for i,c in enumerate(d) if c.isalpha()),(n,'sealed bricks')
+ # Connectivity THROUGH BRICKS ONLY. Reachability through the maze is weaker
+ # and previously allowed the two separate diamond islands seen on level 16.
+ brick_cells={i for i,c in enumerate(d) if c.isalpha()}
+ brick_field=flood([min(brick_cells)],lambda i:i in brick_cells)
+ assert brick_field==brick_cells,(n,'brick islands are separated by the maze')
+ assert l['brickRegions']==1
  actual={i for i,c in enumerate(d) if c=='.' and any(d[j].isalpha() for j in neighbors(i))}
  declared={y*64+x for p in l['ports'] for x,y in p}
  assert actual==declared,(n,'unintended brick exposure: wall is decorative or missing',actual^declared)
@@ -48,10 +55,12 @@ for n,l in enumerate(levels,1):
    steps=max(abs(b[0]-a[0]),abs(b[1]-a[1]))
    for k in range(steps+1):
     x=round(a[0]+(b[0]-a[0])*k/max(1,steps));y=round(a[1]+(b[1]-a[1])*k/max(1,steps))
+    # Deliberately opened closed contours end in new wall caps at these cuts.
+    if any(abs(x-cx)<=r+2 and abs(y-cy)<=r+2 for cx,cy,r in l.get('cuts',[])):continue
     for dx in (-1,0,1):
      for dy in (-1,0,1):
       if 1<=y+dy<=66:assert d[(y+dy)*64+x+dx]=='.',(n,'narrowed corridor',x,y)
  shape=''.join(c if c in '.#' else 'x' for c in d)
  assert shape not in shapes,(n,'repeated wall geometry');shapes.add(shape)
 assert len(families)==25 and all(v==8 for v in families.values())
-print(f'PASS: 200 unique enclosed mazes, 25 route families, 1–3 actual brick-facing windows {dict(counts)}; no other exposed bricks, closed top/sides, connected ball-width routes and all bricks structurally reachable.')
+print(f'PASS: all 200 mazes have ONE connected brick field, 1–3 brick-facing windows {dict(counts)}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.')

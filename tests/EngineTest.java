@@ -16,7 +16,7 @@ public final class EngineTest {
             for(int x=0;x<64;x++)check(l.cells[x]==-1,"Closed top "+n);
             for(int y=0;y<68;y++){check(l.cells[y*64]==-1,"Closed left "+n);check(l.cells[y*64+63]==-1,"Closed right "+n);}
             // Each advertised entrance fits the ball, is open, and has a clear landing gallery.
-            for(int g=0;g<l.gates.length;g+=2){int a=l.gates[g],b=l.gates[g+1];check(l.gateWidth>Engine.RADIUS*4&&l.gateWidth<=Engine.RADIUS*6+.6f,"Exact two-to-three-ball entry "+n);
+            for(int g=0;g<l.gates.length;g+=2){int a=l.gates[g],b=l.gates[g+1];check((l.gateWidth==Levels.CELL||l.gateWidth==Levels.CELL*2)&&l.gateWidth==(b-a)*Levels.CELL,"Exact one-to-two-block entry "+n);
                 for(int y=64;y<68;y++)for(int x=a;x<b;x++)check(l.cells[y*64+x]==0,"Unobstructed entry "+n);
                 for(int x=a;x<b;x++)check(l.cells[65*64+x]==0,"No decorative rail across entrance "+n);
             }
@@ -90,9 +90,9 @@ public final class EngineTest {
         }
         e.load(3);e.launch();e.balls.clear();Engine.Ball grazing=new Engine.Ball(100,Levels.BOTTOM+Engine.RADIUS+.002f,-300,-1);grazing.quiet=10;e.balls.add(grazing);e.update(.02f);check(grazing.vy>0,"Anti-stall correction cannot turn a grazing reflection back into steel");noSteelOverlap(e,grazing);
         for(int n=1;n<=Levels.COUNT;n++){
-            e.load(n);e.launch();e.balls.clear();int capacity=e.level.gateWidth>12?3:2;
+            e.load(n);e.launch();e.balls.clear();int capacity=(int)(e.level.gateWidth/(Engine.RADIUS*2));
             for(int slot=0;slot<capacity;slot++)e.balls.add(new Engine.Ball(e.level.gateCenter(0)+(slot-(capacity-1)/2f)*Engine.RADIUS*2,Levels.BOTTOM+4,0,-300));
-            e.update(.05f);check(e.balls.size()==capacity,"Packed entrance retains all balls "+n);for(Engine.Ball ball:e.balls)check(ball.y<Levels.FLOOR_TOP-Engine.RADIUS&&ball.vy<0,"Two or three full ball diameters pass side by side "+n);
+            e.update(.05f);check(e.balls.size()==capacity,"Packed entrance retains all balls "+n);for(Engine.Ball ball:e.balls)check(ball.y<Levels.FLOOR_TOP-Engine.RADIUS&&ball.vy<0,"One or two full ball diameters pass side by side "+n);
         }
         // All 200 levels are open even on an upgrade from a completed classic campaign.
         Memory memory=new Memory();memory.map.put("unlocked",200);memory.map.put("stars_1",3);memory.map.put("last",199);AppModel a=new AppModel(memory);
@@ -106,7 +106,7 @@ public final class EngineTest {
         check(upgrade.map.get("level_stars_1000")==3&&upgrade.map.get("route4_stars_5")==2,"Historical campaign results remain stored");
         migrated.start(17);migrated.completed(17,2,555);AppModel reload=new AppModel(upgrade);check(reload.stars[17]==2&&reload.best[17]==555&&reload.last==18,"New stable maze IDs preserve result and resume");
         // No automated campaign playthrough in this release: structural checks and focused regressions only.
-        System.out.println("PASS: "+checks+" focused checks; 200 selectable double-banked mazes with 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
+        System.out.println("PASS: "+checks+" focused checks; 200 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks "+min+".."+max+"; physical multiball grows beyond 512, no weighted groups.");
     }
     static void noSteelOverlap(Engine e,Engine.Ball b){
         int cx=(int)((b.x-Levels.LEFT)/Levels.CELL),cy=(int)((b.y-Levels.TOP)/Levels.CELL);
@@ -121,6 +121,12 @@ public final class EngineTest {
         }
     }
     static void accessible(Levels.Layout l){
+        // All destructible cells must connect through OTHER BRICKS only, not
+        // through empty corridors. This catches the level-16 screenshot bug.
+        Set<Integer> brickField=new HashSet<>();ArrayDeque<Integer> brickQueue=new ArrayDeque<>();
+        for(int i=0;i<l.cells.length;i++)if(l.cells[i]>0){brickField.add(i);brickQueue.add(i);break;}
+        while(!brickQueue.isEmpty()){int i=brickQueue.remove();for(int j:new int[]{i-1,i+1,i-64,i+64})if(j>=0&&j<l.cells.length&&l.cells[j]>0&&brickField.add(j))brickQueue.add(j);}
+        check(brickField.size()==l.blocks,"ALL bricks form one contiguous field on "+l.number);
         // Cell centers leave 0.375 px of clearance on each side of the actual ball.
         // Four-neighbor traversal cannot pass diagonally through touching metal corners.
         boolean[] seen=new boolean[l.cells.length];ArrayDeque<Integer> q=new ArrayDeque<>();for(int x=0;x<64;x++){int i=67*64+x;if(l.cells[i]!=-1){q.add(i);seen[i]=true;}}

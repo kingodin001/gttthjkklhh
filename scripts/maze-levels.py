@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """200 mazes: 25 authored route families × eight nonlinear geometry variants.
-Complete double banks, a single bottom inlet, exactly 1–3 brick-facing ports.
+Complete double banks, one connected brick field, a 1–2-cell bottom inlet,
+and exactly 1–3 brick-facing ports.
 Structural connectivity does not constitute an automated campaign playthrough.
 """
 from pathlib import Path
@@ -65,6 +66,43 @@ def distances(mask,start):
    p=x+dx,y+dy
    if p in mask and p not in out:out[p]=out[x,y]+1;q.append(p)
  return out
+def field(mask):
+ shell={(x+dx,y+dy) for x,y in mask for dx,dy in D8 if 1<=x+dx<=62 and 1<=y+dy<=66}-mask
+ bricks={(x,y) for y in range(1,67) for x in range(1,63)}-mask-shell
+ parts=components(bricks)
+ # Remove raster pinholes, not substantial brick islands. Substantial islands
+ # must be joined to the main brick mass by opening the surrounding contour.
+ tiny=set().union(*(p for p in parts if len(p)<=40))
+ bricks-=tiny;shell|=tiny;parts=[p for p in parts if len(p)>40]
+ return shell,bricks,parts
+def join_brick_field(mask,center,start):
+ """Break enclosing tunnel loops with brick-filled bridges, keeping the
+ remaining empty tunnel connected. The new wall caps enclose the cut ends.
+ No bridges/teleports or destructible passages through steel are invented.
+ """
+ shell,bricks,parts=field(mask);cuts=[]
+ for iteration in range(8):
+  if len(parts)==1:return mask,shell,bricks,parts,cuts
+  regions={p:i for i,part in enumerate(parts) for p in part}
+  found=False
+  for radius in (3,4,5):
+   candidates=[]
+   for x,y in sorted(center):
+    if y>59 or min(x,63-x,y)<radius+2:continue
+    local={regions[p] for xx in range(x-radius-2,x+radius+3) for yy in range(y-radius-2,y+radius+3) if (p:=(xx,yy)) in regions}
+    if len(local)>1:
+     cut={p for p in mask if abs(p[0]-x)<=radius and abs(p[1]-y)<=radius}
+     candidates.append((len(cut),y,x,cut))
+   for _,y,x,cut in sorted(candidates,key=lambda v:v[:3]):
+    candidate=mask-cut
+    if start not in candidate or len(distances(candidate,start))!=len(candidate):continue
+    ns,nb,np=field(candidate)
+    if len(np)>=len(parts):continue
+    mask,shell,bricks,parts=candidate,ns,nb,np
+    cuts.append([x,y,radius]);found=True;break
+   if found:break
+  if not found:return None
+ return None
 def warped(family,variant,attempt):
  ax=(variant//2-1.5)*1.1+math.sin(attempt*1.7)*1.2
  ay=((variant*3)%7-3)*.55+math.cos(attempt*1.3)*.8
@@ -89,16 +127,13 @@ def build(index,fi,variant,attempt=0):
  for path in paths:
   for a,b in zip(path,path[1:]):center.update(line(a,b))
  mask={(x+dx,y+dy) for x,y in center for dx,dy in D8 if 1<=x+dx<=62 and 1<=y+dy<=66}
- start=paths[0][0];dist=distances(mask,start)
- assert len(dist)==len(mask)
- shell={(x+dx,y+dy) for x,y in mask for dx,dy in D8 if 1<=x+dx<=62 and 1<=y+dy<=66}-mask
- bricks={(x,y) for y in range(1,67) for x in range(1,63)}-mask-shell
- parts=components(bricks)
- # Acute joins can leave a handful of isolated tiles between two banks. Close
- # those with steel instead of leaving unreachable bonus bricks in a pinhole.
- tiny=set().union(*(p for p in parts if len(p)<=40))
- bricks-=tiny;shell|=tiny;parts=[p for p in parts if len(p)>40]
- if len(parts)>3 or len(bricks)<2150:return None
+ start=paths[0][0]
+ connected=join_brick_field(mask,center,start)
+ if connected is None:return None
+ mask,shell,bricks,parts,cuts=connected
+ dist=distances(mask,start)
+ assert len(dist)==len(mask) and len(parts)==1
+ if len(bricks)<2150:return None
  region={p:i for i,part in enumerate(parts) for p in part};candidates=[]
  for x,y in sorted(shell):
   for dx,dy in D4:
@@ -139,12 +174,12 @@ def build(index,fi,variant,attempt=0):
  cells=[['#' if x in (0,63) or y in (0,67) else color(x,y) for x in range(W)] for y in range(H)]
  for x,y in shell:cells[y][x]='#'
  for x,y in mask|used:cells[y][x]='.'
- entry=start[0];two=index>19 and index%4==0;a=entry-1;b=a+(2 if two else 3)
+ entry=start[0];two=index%4==0;a=entry-1 if two else entry;b=a+(2 if two else 1)
  for x in range(a,b):cells[67][x]='.'
  data=''.join(''.join(row) for row in cells)
  exposed={(x,y) for y in range(1,67) for x in range(1,63) if cells[y][x]=='.' and any(cells[y+dy][x+dx].isalpha() for dx,dy in D4)}
  if exposed!=used:return None
- return dict(number=index+1,id=20001+index,title=family['title']+' '+str(variant+1),hint=f'{len(chosen)} выхода к кирпичам. Пройди повороты между стенками.',family='maze:'+str(fi),variant=variant,routes=paths,gates=[(a,b)],gateWidths=[10.5 if two else 15.5],cells=data,blocks=len(bricks),ports=[p['cells'] for p in chosen],portDistances=[p['distance'] for p in chosen],tunnelLength=max(dist.values()),brickRegions=len(parts),mazeCells=len(mask),speed=round(190+index*.6,2),paddle=round(144-index*.24,2))
+ return dict(number=index+1,id=20001+index,title=family['title']+' '+str(variant+1),hint=f'{len(chosen)} выхода к кирпичам. Пройди повороты между стенками.',family='maze:'+str(fi),variant=variant,routes=paths,cuts=cuts,gates=[(a,b)],gateWidths=[11.5 if two else 5.75],cells=data,blocks=len(bricks),ports=[p['cells'] for p in chosen],portDistances=[p['distance'] for p in chosen],tunnelLength=max(dist.values()),brickRegions=len(parts),mazeCells=len(mask),speed=round(190+index*.6,2),paddle=round(144-index*.24,2))
 def write(catalog):
  out=['package pro.brickstorm.game;','/** 200 enclosed maze puzzles; generated by scripts/maze-levels.py. */','final class LevelData {']
  for field in ('title','hint','family','cells'):
