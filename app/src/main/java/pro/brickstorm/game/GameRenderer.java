@@ -53,16 +53,16 @@ public final class GameRenderer {
         buttons.add(new Button(339,674,29,33,"giftinfo"));
         // Real completed count and stars replace the promotional 5/300 example.
         p.rect(28,739,344,33,0xff4387ed,9);p.gradient(29,740,342,31,0xff0a306f,0xff071b54,8);
-        text("300 уровней",46,760,11,WHITE,true);
+        text(Levels.COUNT+" уровень",46,760,11,WHITE,true);
         p.rect(138,749,149,12,0xff5272b4,6);p.gradient(139,750,147,10,0xff234a8a,0xff112e68,5);
-        if(app.completedCount()>0)p.gradient(139,750,Math.max(4,app.completedCount()/300f*147),10,0xffffee7a,0xffffb321,5);
-        center("★",305,761,20,GOLD,true);String starCount=app.totalStars()+" / 900";text(starCount,319,759,fit(starCount,11,48),MUTED,true);
+        if(app.completedCount()>0)p.gradient(139,750,Math.max(4,app.completedCount()/(float)Levels.COUNT*147),10,0xffffee7a,0xffffb321,5);
+        center("★",305,761,20,GOLD,true);String starCount=app.totalStars()+" / "+(Levels.COUNT*3);text(starCount,319,759,fit(starCount,11,48),MUTED,true);
     }
     private void progress(){
         header("Мой прогресс","Все результаты сохраняются на этом устройстве.");
-        p.rect(24,146,352,178,0xf00a2866,20);center("★ "+app.totalStars()+" / 900",200,204,31,GOLD,true);
-        center("Пройдено "+app.completedCount()+" из 300 уровней",200,246,17,WHITE,true);
-        p.rect(50,274,300,8,0xff244579,4);if(app.completedCount()>0)p.gradient(50,274,app.completedCount(),8,0xffffed9a,0xffffae2b,4);
+        p.rect(24,146,352,178,0xf00a2866,20);center("★ "+app.totalStars()+" / "+(Levels.COUNT*3),200,204,31,GOLD,true);
+        center("Пройдено "+app.completedCount()+" из "+Levels.COUNT+" уровней",200,246,17,WHITE,true);
+        p.rect(50,274,300,8,0xff244579,4);if(app.completedCount()>0)p.gradient(50,274,app.completedCount()/(float)Levels.COUNT*300,8,0xffffed9a,0xffffae2b,4);
         text("ПОСЛЕДНИЙ ВЫБРАННЫЙ",40,374,11,CYAN,true);
         Levels.Layout level=Levels.make(app.last);String selected="Уровень "+app.last+" · "+level.title();text(selected,40,406,fit(selected,15,320),WHITE,true);
         text("Лучший счёт: "+app.best[app.last]+"   ·   ★ "+app.stars[app.last]+" / 3",40,437,13,MUTED,false);
@@ -80,7 +80,7 @@ public final class GameRenderer {
     private void header(String title,String subtitle){button(20,20,92,44,"‹ Меню","home",false);text(title,128,49,22,WHITE,true);text(subtitle,24,105,12,MUTED,false);}
     private void levels(){
         header("Уровни","Пройди уровень, чтобы открыть следующий.");int start=app.page*AppModel.PAGE_SIZE+1;
-        p.rect(24,125,352,63,PANEL,16);text("300 ЛАБИРИНТОВ · 1–3 ВЫХОДА",39,150,11,CYAN,true);
+        p.rect(24,125,352,63,PANEL,16);text(Levels.COUNT+" ЛАБИРИНТ · 1–3 ВЫХОДА",39,150,11,CYAN,true);
         text("Двойные стенки и узкие выходы к кирпичам",39,174,11,WHITE,false);
         for(int j=0;j<AppModel.PAGE_SIZE;j++){
             int n=start+j;if(n>Levels.COUNT)break;Levels.Layout l=Levels.make(n);float x=24+(j%4)*90,y=205+(j/4)*119;boolean active=n==app.last;
@@ -112,8 +112,8 @@ public final class GameRenderer {
         text("КАК ИГРАТЬ",24,384,11,CYAN,true);
         String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Скорость игры: ×1 / ×2 / ×4.","Побеждай — открывай новые уровни."};
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
-        p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · 300 уровней",42,697,12,WHITE,false);
-        center("Брикс Шторм  ·  1.12.0",200,795,11,MUTED,false);
+        p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · "+Levels.COUNT+" уровень",42,697,12,WHITE,false);
+        center("Брикс Шторм  ·  1.13.0",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format("%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");

@@ -39,7 +39,7 @@ public final class RenderCheck implements Painter {
         fresh.completed(1,2,200);fresh.screen="levels";fresh.page=0;RenderCheck unlocked=new RenderCheck();r.draw(unlocked,fresh);
         if(!"level:2".equals(r.hit(155,260))||r.hit(245,260)!=null)throw new AssertionError("Win must unlock only the next card");
         ImageIO.write(unlocked.image,"png",new File("verification/unlocked-after-win.png"));
-        for(int n:new int[]{1,16,25,100,107,199,200,201,202,203,204,205,206,207,208,209,210,225,250,275,299,300}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
+        for(int n:new int[]{1,2,16,25,100,107,199,200,201,202,203,204,205,206,207,208,209,210,225,250,275,299,300,301}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
         a.screen="home";RenderCheck home=new RenderCheck();r.draw(home,a);ImageIO.write(home.image,"png",new File("verification/home.png"));
         if(!"gift:claim".equals(r.hit(293,691)))throw new AssertionError("Gift claim control is missing");
         if(!"play".equals(r.hit(200,510))||!"levels".equals(r.hit(100,615))||!"progress".equals(r.hit(285,615))||!"settings".equals(r.hit(365,36))||!"giftinfo".equals(r.hit(352,690)))throw new AssertionError("Approved menu artwork and live touch controls disagree");
@@ -54,7 +54,7 @@ public final class RenderCheck implements Painter {
         a.action("gift:use");RenderCheck used=new RenderCheck();r.draw(used,a);ImageIO.write(used.image,"png",new File("verification/gift-used.png"));
         if(r.hit(330,785)!=null||a.gifts.charges()!=0)throw new AssertionError("Spent gift remains actionable");
         a.screen="home";a.stars[1]=3;a.stars[107]=2;RenderCheck saved=new RenderCheck();r.draw(saved,a);ImageIO.write(saved.image,"png",new File("verification/home-with-progress.png"));if(!"progress".equals(r.hit(50,36)))throw new AssertionError("Live stars counter has no progress action");
-        for(int i=1;i<=Levels.COUNT;i++)a.stars[i]=3;RenderCheck full=new RenderCheck();r.draw(full,a);ImageIO.write(full.image,"png",new File("verification/home-complete.png"));if(a.totalStars()!=900)throw new AssertionError("Wrong maximum star total");
+        for(int i=1;i<=Levels.COUNT;i++)a.stars[i]=3;RenderCheck full=new RenderCheck();r.draw(full,a);ImageIO.write(full.image,"png",new File("verification/home-complete.png"));if(a.totalStars()!=Levels.COUNT*3)throw new AssertionError("Wrong maximum star total");
         a.screen="settings";RenderCheck settings=new RenderCheck();r.draw(settings,a);ImageIO.write(settings.image,"png",new File("verification/settings.png"));
         System.out.println("PASS: all "+access+" earned level cards are clickable across "+AppModel.PAGES+" pages; fresh install locks, sequential unlock, approved menu controls, live progress, gift stock/timer and shared renderer screenshots verified internally.");
     }

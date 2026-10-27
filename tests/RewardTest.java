@@ -47,8 +47,8 @@ public final class RewardTest {
         check(!f.gifts.claim()&&f.gifts.charges()==3,"Full inventory blocks new gifts even when cooldown is over");
         f.start(1);f.game.launch();check(f.useGift()&&f.gifts.charges()==2,"Stored gifts can be used after a day");f.action("home");f.action("gift:claim");check(f.gifts.charges()==3,"One free inventory slot can receive an available gift");
         ClockStorage upgrade=new ClockStorage();upgrade.data.put("level_stars_20200",3);upgrade.data.put("level_best_20200",999);upgrade.data.put("level_last_id",20200);AppModel upgraded=new AppModel(upgrade);
-        check(upgraded.stars[200]==3&&upgraded.best[200]==999&&upgraded.last==200,"First 200 scores and resume survive expansion to 300");
-        check(upgraded.isUnlocked(200)&&upgraded.isUnlocked(201)&&!upgraded.isUnlocked(300),"Earned scores unlock the immediate next level without opening the whole new campaign");upgraded.start(201);check(upgraded.game.level.number==201,"First new level opens after previously completed level 200");
+        check(upgraded.stars[201]==3&&upgraded.best[201]==999&&upgraded.last==201,"First 200 scores and resume survive expansion to 300");
+        check(upgraded.isUnlocked(201)&&upgraded.isUnlocked(202)&&!upgraded.isUnlocked(300),"Earned scores unlock the immediate next level without opening the whole new campaign");upgraded.start(202);check(upgraded.game.level.number==202,"First new level opens after previously completed level 200");
         System.out.println("PASS: "+checks+" reward checks: cooldown, rolling daily cap, capacity, restart/upgrade, clocks, pause, all-ball multiplication, attempt limit and no-waste behavior.");
     }
 }

@@ -2,10 +2,10 @@
 """Independent structure/port checks, not an automated level playthrough."""
 from pathlib import Path
 from collections import deque,Counter
-import json
+import json,hashlib
 root=Path(__file__).resolve().parents[1]
 levels=json.loads((root/'verification/level-catalog.json').read_text())
-assert len(levels)==300
+assert len(levels)==301
 shapes=set();ids=set();families=Counter();counts=Counter()
 def neighbors(i):
  x,y=i%64,i//64
@@ -47,7 +47,7 @@ for n,l in enumerate(levels,1):
  assert window_count==len(l['ports']),(n,'window grouping')
  assert sum(c.isalpha() for c in d)==l['blocks']>=2150,(n,'field is too empty')
  assert min(l['portDistances'])>=15
- assert l['tunnelLength']>=70,(n,'route is too short')
+ assert l['tunnelLength']>=(35 if l['family']=='maze:intro' else 70),(n,'route is too short')
  # Every authored centerline has a full three-cell cross-section. The route
  # follows four-connected raster stairs at angled segments, never a corner crack.
  for path in l['routes']:
@@ -62,6 +62,11 @@ for n,l in enumerate(levels,1):
       if 1<=y+dy<=66:assert d[(y+dy)*64+x+dx]=='.',(n,'narrowed corridor',x,y)
  shape=''.join(c if c in '.#' else 'x' for c in d)
  assert shape not in shapes,(n,'repeated wall geometry');shapes.add(shape)
-assert len(families)==35
+assert len(families)==36 and families["maze:intro"]==1
 assert all(families["maze:"+str(i)]==(8 if i<25 else 10) for i in range(35))
-print(f'PASS: all 300 mazes have ONE connected brick field, 1–3 brick-facing windows {dict(counts)}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.')
+baseline=json.loads((root/'tests/legacy-300-1.12-hashes.json').read_text())
+assert levels[0]['id']==20301
+for level in levels[1:]:
+ actual=hashlib.sha256(json.dumps({k:v for k,v in level.items() if k!='number'},sort_keys=True,ensure_ascii=False).encode()).hexdigest()
+ assert actual==baseline[str(level['id'])],(level['number'],'established level changed after insertion')
+print(f'PASS: all 301 mazes have ONE connected brick field, 1–3 brick-facing windows {dict(counts)}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.')

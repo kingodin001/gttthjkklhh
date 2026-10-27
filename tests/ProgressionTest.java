@@ -10,7 +10,7 @@ public final class ProgressionTest {
         AppModel fresh=new AppModel(storage);
         check(fresh.last==1&&fresh.isUnlocked(1),"Selected test level and legacy unlock flag cannot unlock the campaign");
         for(int n=2;n<=Levels.COUNT;n++)check(!fresh.isUnlocked(n),"Fresh install locks level "+n);
-        check(!fresh.isUnlocked(0)&&!fresh.isUnlocked(301),"Access boundaries");
+        check(!fresh.isUnlocked(0)&&!fresh.isUnlocked(Levels.COUNT+1),"Access boundaries");
         fresh.action("level:250");check(fresh.screen.equals("home")&&!fresh.hasSession,"Direct locked-card action is rejected");
         fresh.action("play");check(fresh.game.level.number==1,"Play starts the first earned level");
         fresh.action("next");check(fresh.game.level.number==1&&fresh.game.state==Engine.State.READY,"Next cannot skip a ready level");
@@ -40,8 +40,8 @@ public final class ProgressionTest {
             if(n<Levels.COUNT){check(campaign.isUnlocked(n+1),"Next is earned "+n);if(n+2<=Levels.COUNT)check(!campaign.isUnlocked(n+2),"No multi-level skip "+n);}
             campaign.action("next");if(n<Levels.COUNT)check(campaign.game.level.number==n+1,"Win next button "+n);
         }
-        check(campaign.screen.equals("levels")&&campaign.page==AppModel.PAGES-1&&campaign.last==300,"Final victory returns to the last map page, never level 301");
-        AppModel finished=new AppModel(campaign.storage);check(finished.completedCount()==300&&finished.isUnlocked(300),"Entire earned campaign survives restart");
+        check(campaign.screen.equals("levels")&&campaign.page==AppModel.PAGES-1&&campaign.last==Levels.COUNT,"Final victory returns to the last map page, never beyond the final level");
+        AppModel finished=new AppModel(campaign.storage);check(finished.completedCount()==Levels.COUNT&&finished.isUnlocked(Levels.COUNT),"Entire earned campaign survives restart");
         System.out.println("PASS: "+checks+" progression checks: locked starts, no skip, engine win events, replay, restart, sparse migration, gifts and final level.");
     }
 }

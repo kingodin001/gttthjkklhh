@@ -8,3 +8,5 @@ java -m jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -d out/classes app
 java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.EngineTest
 java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.RewardTest
 java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.ProgressionTest
+java -m jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -cp out/classes -d out/classes tests/IntroTest.java
+java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.IntroTest

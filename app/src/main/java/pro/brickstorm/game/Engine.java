@@ -17,12 +17,12 @@ public final class Engine {
     public String notice=""; public float noticeTime=0;
     public Events events; private State pausedFrom=State.PLAYING; private Random rng; private float accumulator=0;private float lastX=200,lastY=330;
     public Engine(Events e){events=e;load(1);}
-    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();rng=new Random(9137L*n);state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));}
+    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();rng=new Random(level.randomSeed());state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));}
     public void launch(){
         if(state!=State.READY)return;state=State.PLAYING;
         float angle=serveAngle();
         Ball b=balls.get(0);b.vx=(float)Math.sin(angle)*level.speed;b.vy=-(float)Math.cos(angle)*level.speed;
-        if(level.number==1&&broken==0){for(float offset:new float[]{-.008f,.008f})balls.add(new Ball(b.x,PADDLE_Y-8,(float)Math.sin(angle+offset)*level.speed,-(float)Math.cos(angle+offset)*level.speed));}
+        if(level.initialBalls()==3&&broken==0){for(float offset:new float[]{-.008f,.008f})balls.add(new Ball(b.x,PADDLE_Y-8,(float)Math.sin(angle+offset)*level.speed,-(float)Math.cos(angle+offset)*level.speed));}
         notice="Войди в проход и выбирай угол отскока";noticeTime=3;events.sound(0);
     }
     private float serveX(){return clamp(level.gateCenter(0),paddle-width/2+RADIUS+1,paddle+width/2-RADIUS-1);}
