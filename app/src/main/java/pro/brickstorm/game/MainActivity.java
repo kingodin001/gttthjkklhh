@@ -58,7 +58,9 @@ public final class MainActivity extends Activity {
         }
         @Override public void saveGiftState(int stock,long lastSeen,long[] claims){SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",stock).putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);edit.commit();}
         @Override public void sound(int kind){audio.play(kind);}
-        @Override public void openPrivacy(){try{getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse("https://yandex.ru/legal/confidential/")));}catch(android.content.ActivityNotFoundException ignored){}}
+        @Override public void openPrivacy(){openDocument("https://games-api.vymi.pro/brickstorm/privacy/");}
+        @Override public void openAdPrivacy(){openDocument("https://yandex.ru/legal/confidential/");}
+        private void openDocument(String url){try{getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(url)));}catch(android.content.ActivityNotFoundException ignored){}}
     }
     static final class AndroidPainter implements Painter {
         Canvas canvas;final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final RectF rect=new RectF();Bitmap board;Canvas boardCanvas;final Paint pixel=new Paint();int[] previous;Engine lastEngine;int lastLevel=-1;

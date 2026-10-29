@@ -1,6 +1,6 @@
 # Брикс Шторм
 
-Android-арканоид **1.14.1** (versionCode **18**, подключение РСЯ с реальными рекламными блоками), package **pro.brickstorm.game**, Android **8.0+** / API26, target35. Release использует прежний сертификат и историю подписи.
+Android-арканоид **1.14.2** (versionCode **19**, подключение РСЯ с реальными рекламными блоками), package **pro.brickstorm.game**, Android **8.0+** / API26, target35. Release использует прежний сертификат и историю подписи.
 
 ## Оформление
 
@@ -49,3 +49,9 @@ Yandex Mobile Ads SDK 8.6.0. Межстраничный показ допуск�
 Java17, официальный Android SDK35. Скрипт `scripts/assemble-release.py` сначала собирает полный граф SDK через Gradle, затем выравнивает APK (включая 16 KB для native .so) и подписывает прежним ключом/lineage. Требуются Android SDK35, Gradle8.11.1 и JDK17; `BRICKSTORM_GRADLE` задаёт путь Gradle, `BRICKSTORM_GRADLE_USER_HOME` — отдельный кэш. Также нужны BUILD_TOOLS, BRICKSTORM_KEYSTORE, BRICKSTORM_KEY_ALIAS, BRICKSTORM_KEY_PASSWORD; для истории подписи — BRICKSTORM_PREVIOUS_KEYSTORE, BRICKSTORM_PREVIOUS_ALIAS, BRICKSTORM_PREVIOUS_PASSWORD, BRICKSTORM_LINEAGE. Приватные ключи не входят в репозиторий.
 
 Запуска на телефоне/эмуляторе и полного прохождения кампании в этой среде не было. Публикация в RuStore требует отдельного подтверждённого результата в кабинете разработчика; сборка APK сама по себе не означает публикацию.
+
+## Страница разработчика и публикация
+
+В website/public/brickstorm подготовлены страница игры, политика и условия для https://games-api.vymi.pro/brickstorm/. ZIP содержит только папку brickstorm; общий app-ads.txt и Bus Fever не заменяются. Партнёр в действующем файле app-ads.txt — 333513575; приложение BrickStorm в РСЯ — 20304400 (это разные виды ID). Полная инструкция и тексты для магазина: docs/PUBLISH-1.14.2-RU.md.
+
+В 1.14.2 раздел «О рекламе и данных» открывает отдельно политику игры и политику Яндекса. До загрузки сайта первая ссылка недоступна: публикация страницы на хостинге и обновления в RuStore ещё не выполнена.

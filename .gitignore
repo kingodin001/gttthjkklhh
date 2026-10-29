@@ -13,3 +13,5 @@ verification/*.png
 verification/level-catalog.json
 __pycache__/
 .private/
+
+website/public/brickstorm/assets/level-*.png

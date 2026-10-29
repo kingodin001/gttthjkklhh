@@ -3,6 +3,7 @@ public final class AppModel implements Engine.Events {
     public interface Storage {
         int get(String key,int fallback);void put(String key,int value);void sound(int kind);
         default void openPrivacy(){}
+        default void openAdPrivacy(){openPrivacy();}
         default long nowSeconds(){return System.currentTimeMillis()/1000L;}
         default long getLong(String key,long fallback){return ((long)get(key+"_hi",(int)(fallback>>>32))<<32)|(get(key+"_lo",(int)fallback)&0xffffffffL);}
         default void putLong(String key,long value){put(key+"_hi",(int)(value>>>32));put(key+"_lo",(int)value);}
@@ -42,6 +43,7 @@ public final class AppModel implements Engine.Events {
         if(adBusy)return;
         if(a.equals("adinfo")){screen="adinfo";return;}
         if(a.equals("privacy:open")){storage.openPrivacy();return;}
+        if(a.equals("privacy:ads")){storage.openAdPrivacy();return;}
         if(a.equals("rewards")){rewardReturn=screen;menu();screen="rewards";return;}
         if(a.equals("rewardback")){screen=rewardReturn;return;}
         if(a.startsWith("ad:")){requestReward(a.substring(3));return;}

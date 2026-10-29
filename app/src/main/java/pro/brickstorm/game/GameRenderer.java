@@ -100,8 +100,9 @@ public final class GameRenderer {
         p.rect(24,145,352,380,0xf00a2866,18);
         String[] lines={"Обычная реклама — между уровнями после 3-го.","Пауза между показами — не менее 180 секунд.","Бонусы за рекламу получаешь только по желанию.","Без сети можно продолжать обычную игру.","Сохранения и результаты хранятся на устройстве.","Яндекс обрабатывает технические данные", "для загрузки рекламы и измерения её показов.","Доступ к геолокации не запрашивается.","Реклама показывается без персонализации."};
         for(int i=0;i<lines.length;i++)text(lines[i],40,185+i*34,11,MUTED,false);
-        button(40,552,320,50,"Политика Яндекса","privacy:open",false);
-        button(40,625,320,50,"В главное меню","home",true);
+        button(40,552,320,44,"Политика игры","privacy:open",false);
+        button(40,612,320,44,"Политика Яндекса","privacy:ads",false);
+        button(40,680,320,50,"В главное меню","home",true);
     }
     private void adButton(float y,String title,String kind){
         if(app.rewardEligible(kind)&&app.ads.rewardedReady())button(40,y,320,48,title,"ad:"+kind,true);
@@ -168,7 +169,7 @@ public final class GameRenderer {
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
         p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · "+Levels.COUNT+" уровень",42,697,12,WHITE,false);
         button(24,739,352,38,"О рекламе и данных","adinfo",false);
-        center("Брикс Шторм  ·  1.14.1",200,795,11,MUTED,false);
+        center("Брикс Шторм  ·  1.14.2",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format(java.util.Locale.ROOT,"%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");

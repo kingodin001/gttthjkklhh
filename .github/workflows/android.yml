@@ -67,8 +67,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: env.BRICKSTORM_KEYSTORE_B64 != '' && steps.adconfig.outputs.ready == 'true'
         with:
-          name: BrickStorm-1.14.1-release
-          path: out/release/BrickStorm-1.14.1.apk
+          name: BrickStorm-1.14.2-release
+          path: out/release/BrickStorm-1.14.2.apk
       - uses: actions/upload-artifact@v4
         with:
           name: release-verification

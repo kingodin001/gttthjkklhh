@@ -6,7 +6,8 @@ public final class AdsTest {
     static int checks;
     static void check(boolean ok,String message){checks++;if(!ok)throw new AssertionError(message);}
     static final class Clock implements AppModel.Storage {
-        final Map<String,Integer> data=new HashMap<>();long now=2_200_000_000L;
+        final Map<String,Integer> data=new HashMap<>();long now=2_200_000_000L;int privacyRequests,adPrivacyRequests;
+        public void openPrivacy(){privacyRequests++;}public void openAdPrivacy(){adPrivacyRequests++;}
         public int get(String k,int fallback){return data.getOrDefault(k,fallback);}public void put(String k,int n){data.put(k,n);}public void sound(int k){}public long nowSeconds(){return now;}
     }
     static final class Host implements AdsHost {

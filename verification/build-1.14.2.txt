@@ -1,0 +1,218 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.11.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+> Task :app:preBuild UP-TO-DATE
+> Task :app:validateProductionAds
+> Task :app:preReleaseBuild
+> Task :app:mergeReleaseJniLibFolders
+> Task :app:mergeReleaseNativeLibs NO-SOURCE
+> Task :app:stripReleaseDebugSymbols NO-SOURCE
+> Task :app:extractReleaseNativeSymbolTables NO-SOURCE
+> Task :app:mergeReleaseNativeDebugMetadata NO-SOURCE
+> Task :app:generateReleaseBuildConfig
+> Task :app:checkReleaseDuplicateClasses
+> Task :app:javaPreCompileRelease
+> Task :app:generateReleaseResValues
+> Task :app:checkReleaseAarMetadata
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:packageReleaseResources
+> Task :app:parseReleaseLocalResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+
+> Task :app:processReleaseMainManifest
+/workspace/scratch/904ccb3f7577/project/BrickStorm/app/src/main/AndroidManifest.xml:4:5-98 Warning:
+	uses-permission#android.permission.ACCESS_FINE_LOCATION was tagged at AndroidManifest.xml:4 to remove other declarations but no other declaration present
+/workspace/scratch/904ccb3f7577/project/BrickStorm/app/src/main/AndroidManifest.xml:5:5-100 Warning:
+	uses-permission#android.permission.ACCESS_COARSE_LOCATION was tagged at AndroidManifest.xml:5 to remove other declarations but no other declaration present
+
+> Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+> Task :app:mergeReleaseResources
+> Task :app:mergeExtDexRelease
+> Task :app:mergeReleaseArtProfile
+> Task :app:mergeReleaseShaders
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:mergeReleaseAssets
+> Task :app:compressReleaseAssets
+> Task :app:extractReleaseVersionControlInfo
+> Task :app:extractProguardFiles
+> Task :app:processReleaseJavaRes NO-SOURCE
+> Task :app:processReleaseResources
+> Task :app:mergeReleaseJavaResource
+
+> Task :app:compileReleaseJavaWithJavac
+Note: /workspace/scratch/904ccb3f7577/project/BrickStorm/app/src/main/java/pro/brickstorm/game/MainActivity.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :app:dexBuilderRelease
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:mergeDexRelease
+> Task :app:generateReleaseLintVitalReportModel
+> Task :app:compileReleaseArtProfile
+> Task :app:optimizeReleaseResources
+> Task :app:collectReleaseDependencies
+> Task :app:sdkReleaseDependencyData
+> Task :app:writeReleaseAppMetadata
+> Task :app:writeReleaseSigningConfigVersions
+> Task :app:generateReleaseLintReportModel
+> Task :app:bundleReleaseClassesToCompileJar
+> Task :app:preReleaseUnitTestBuild UP-TO-DATE
+> Task :app:generateReleaseUnitTestLintModel
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease SKIPPED
+> Task :app:lintVitalRelease SKIPPED
+> Task :app:packageRelease
+> Task :app:createReleaseApkListingFileRedirect
+> Task :app:assembleRelease
+> Task :app:lintAnalyzeReleaseUnitTest
+> Task :app:lintAnalyzeRelease
+
+> Task :app:lintReportRelease
+Wrote HTML report to file:///workspace/scratch/904ccb3f7577/project/BrickStorm/app/build/reports/lint-results-release.html
+
+> Task :app:lintRelease
+[Incubating] Problems report is available at: file:///workspace/scratch/904ccb3f7577/project/BrickStorm/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 33s
+49 actionable tasks: 49 executed
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=BrickStorm, OU=Android Release, O=BrickStorm
+Signer #1 certificate SHA-256 digest: ab3273da346a6ae43d8841906c817163fba165d491066ca5b346ea54d82b61f7
+Signer #1 certificate SHA-1 digest: 98e9075c0bd44cf07e8d86fdc0ed19b661d2843c
+Signer #1 certificate MD5 digest: 063e3e49c56f98dc651f5dc734165dc8
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 3072
+Signer #1 public key SHA-256 digest: cd4dfe44ea6f49bea4bdc8f530855acf8f61e8793e98d4d3bfe8065ed69af0d7
+Signer #1 public key SHA-1 digest: f5aaf006ab27952519605e9fd3387122248d0ca2
+Signer #1 public key MD5 digest: 877dd5dd8a4a622d69b39308b4e1974b
+package: name='pro.brickstorm.game' versionCode='19' versionName='1.14.2' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+minSdkVersion:'26'
+targetSdkVersion:'35'
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='com.google.android.gms.permission.AD_ID'
+uses-permission: name='pro.brickstorm.game.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+uses-permission: name='com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE'
+application-label:'Брикс Шторм'
+application-label-af:'Брикс Шторм'
+application-label-am:'Брикс Шторм'
+application-label-ar:'Брикс Шторм'
+application-label-as:'Брикс Шторм'
+application-label-az:'Брикс Шторм'
+application-label-be:'Брикс Шторм'
+application-label-bg:'Брикс Шторм'
+application-label-bn:'Брикс Шторм'
+application-label-bs:'Брикс Шторм'
+application-label-ca:'Брикс Шторм'
+application-label-cs:'Брикс Шторм'
+application-label-da:'Брикс Шторм'
+application-label-de:'Брикс Шторм'
+application-label-el:'Брикс Шторм'
+application-label-en:'Брикс Шторм'
+application-label-en-AU:'Брикс Шторм'
+application-label-en-CA:'Брикс Шторм'
+application-label-en-GB:'Брикс Шторм'
+application-label-en-IN:'Брикс Шторм'
+application-label-en-XC:'Брикс Шторм'
+application-label-es:'Брикс Шторм'
+application-label-es-US:'Брикс Шторм'
+application-label-et:'Брикс Шторм'
+application-label-eu:'Брикс Шторм'
+application-label-fa:'Брикс Шторм'
+application-label-fi:'Брикс Шторм'
+application-label-fr:'Брикс Шторм'
+application-label-fr-CA:'Брикс Шторм'
+application-label-gl:'Брикс Шторм'
+application-label-gu:'Брикс Шторм'
+application-label-hi:'Брикс Шторм'
+application-label-hr:'Брикс Шторм'
+application-label-hu:'Брикс Шторм'
+application-label-hy:'Брикс Шторм'
+application-label-in:'Брикс Шторм'
+application-label-is:'Брикс Шторм'
+application-label-it:'Брикс Шторм'
+application-label-iw:'Брикс Шторм'
+application-label-ja:'Брикс Шторм'
+application-label-ka:'Брикс Шторм'
+application-label-kk:'Брикс Шторм'
+application-label-km:'Брикс Шторм'
+application-label-kn:'Брикс Шторм'
+application-label-ko:'Брикс Шторм'
+application-label-ky:'Брикс Шторм'
+application-label-lo:'Брикс Шторм'
+application-label-lt:'Брикс Шторм'
+application-label-lv:'Брикс Шторм'
+application-label-mk:'Брикс Шторм'
+application-label-ml:'Брикс Шторм'
+application-label-mn:'Брикс Шторм'
+application-label-mr:'Брикс Шторм'
+application-label-ms:'Брикс Шторм'
+application-label-my:'Брикс Шторм'
+application-label-nb:'Брикс Шторм'
+application-label-ne:'Брикс Шторм'
+application-label-nl:'Брикс Шторм'
+application-label-or:'Брикс Шторм'
+application-label-pa:'Брикс Шторм'
+application-label-pl:'Брикс Шторм'
+application-label-pt:'Брикс Шторм'
+application-label-pt-BR:'Брикс Шторм'
+application-label-pt-PT:'Брикс Шторм'
+application-label-ro:'Брикс Шторм'
+application-label-ru:'Брикс Шторм'
+application-label-si:'Брикс Шторм'
+application-label-sk:'Брикс Шторм'
+application-label-sl:'Брикс Шторм'
+application-label-sq:'Брикс Шторм'
+application-label-sr:'Брикс Шторм'
+application-label-sr-Latn:'Брикс Шторм'
+application-label-sv:'Брикс Шторм'
+application-label-sw:'Брикс Шторм'
+application-label-ta:'Брикс Шторм'
+application-label-te:'Брикс Шторм'
+application-label-th:'Брикс Шторм'
+application-label-tl:'Брикс Шторм'
+application-label-tr:'Брикс Шторм'
+application-label-uk:'Брикс Шторм'
+application-label-ur:'Брикс Шторм'
+application-label-uz:'Брикс Шторм'
+application-label-vi:'Брикс Шторм'
+application-label-zh-CN:'Брикс Шторм'
+application-label-zh-HK:'Брикс Шторм'
+application-label-zh-TW:'Брикс Шторм'
+application-label-zu:'Брикс Шторм'
+application-icon-120:'res/9w.png'
+application-icon-160:'res/9w.png'
+application-icon-240:'res/yn.png'
+application-icon-320:'res/FS.png'
+application-icon-480:'res/RJ.png'
+application-icon-640:'res/o-.png'
+application-icon-65534:'res/9w.png'
+application-icon-65535:'res/o-.png'
+application: label='Брикс Шторм' icon='res/9w.png'
+launchable-activity: name='pro.brickstorm.game.MainActivity'  label='' icon=''
+feature-group: label=''
+  uses-feature: name='android.hardware.faketouch'
+  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
+  uses-feature: name='android.hardware.screen.portrait'
+  uses-implied-feature: name='android.hardware.screen.portrait' reason='one or more activities have specified a portrait orientation'
+main
+other-activities
+other-receivers
+other-services
+supports-screens: 'small' 'normal' 'large' 'xlarge'
+supports-any-density: 'true'
+locales: '--_--' 'af' 'am' 'ar' 'as' 'az' 'be' 'bg' 'bn' 'bs' 'ca' 'cs' 'da' 'de' 'el' 'en' 'en-AU' 'en-CA' 'en-GB' 'en-IN' 'en-XC' 'es' 'es-US' 'et' 'eu' 'fa' 'fi' 'fr' 'fr-CA' 'gl' 'gu' 'hi' 'hr' 'hu' 'hy' 'in' 'is' 'it' 'iw' 'ja' 'ka' 'kk' 'km' 'kn' 'ko' 'ky' 'lo' 'lt' 'lv' 'mk' 'ml' 'mn' 'mr' 'ms' 'my' 'nb' 'ne' 'nl' 'or' 'pa' 'pl' 'pt' 'pt-BR' 'pt-PT' 'ro' 'ru' 'si' 'sk' 'sl' 'sq' 'sr' 'sr-Latn' 'sv' 'sw' 'ta' 'te' 'th' 'tl' 'tr' 'uk' 'ur' 'uz' 'vi' 'zh-CN' 'zh-HK' 'zh-TW' 'zu'
+densities: '120' '160' '240' '320' '480' '640' '65534' '65535'
+RELEASE_APK: /workspace/scratch/904ccb3f7577/project/BrickStorm/out/release/BrickStorm-1.14.2.apk
+SHA256: 12caec43aaf813fbd18db4716b597290f4df2da37081953ff053ee71c5f0933b

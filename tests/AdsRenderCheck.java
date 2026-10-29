@@ -10,6 +10,9 @@ public final class AdsRenderCheck {
         a.action("rewardback");a.game.state=Engine.State.LOST;snapshot(r,a,"ad-continue");if(!"ad:revive".equals(r.hit(200,365)))throw new AssertionError("Continuation ad button missing");
         host.ready=false;snapshot(r,a,"ad-offline");if(r.hit(200,365)!=null||!"retry".equals(r.hit(200,468)))throw new AssertionError("No-fill must preserve free retry");
         a.action("adinfo");snapshot(r,a,"ad-info");if(!"privacy:open".equals(r.hit(200,575)))throw new AssertionError("Privacy information link missing");
+        a.action(r.hit(200,575));if(((AdsTest.Clock)a.storage).privacyRequests!=1)throw new AssertionError("Game policy must use its own document handler");
+        if(!"privacy:ads".equals(r.hit(200,635)))throw new AssertionError("Yandex policy link missing");a.action(r.hit(200,635));if(((AdsTest.Clock)a.storage).adPrivacyRequests!=1)throw new AssertionError("Yandex policy handler missing");
+        if(!"home".equals(r.hit(200,705)))throw new AssertionError("Policy links overlap home control");
         System.out.println("PASS: reward, continuation, used/disabled/no-fill, privacy and ad input-blocking controls; shared Android layout rendered.");
     }
 }
