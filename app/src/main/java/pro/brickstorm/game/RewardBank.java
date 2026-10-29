@@ -29,6 +29,8 @@ public final class RewardBank {
     public boolean canClaim(){return stock<CAPACITY&&waitSeconds()==0;}
     public int adClaimsLeft(){long t=now();int recent=0;for(long claim:adClaims)if(claim>0&&t-claim<DAY)recent++;return DAILY_LIMIT-recent;}
     public boolean canClaimAd(){return stock<CAPACITY&&adClaimsLeft()>0;}
+    public long adWaitSeconds(){long t=now();return adClaimsLeft()>0?0:Math.max(0,adClaims[0]+DAY-t);}
+    public String adCountdown(){long t=adWaitSeconds();return String.format(java.util.Locale.ROOT,"%02d:%02d:%02d",t/3600,t/60%60,t%60);}
     public boolean claimAd(){if(!canClaimAd())return false;long t=now();adClaims[0]=adClaims[1];adClaims[1]=adClaims[2];adClaims[2]=t;stock++;persist();return true;}
     public boolean claim(){
         if(!canClaim())return false;

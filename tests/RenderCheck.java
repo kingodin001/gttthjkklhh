@@ -41,18 +41,18 @@ public final class RenderCheck implements Painter {
         ImageIO.write(unlocked.image,"png",new File("verification/unlocked-after-win.png"));
         for(int n:new int[]{1,2,16,25,100,107,199,200,201,202,203,204,205,206,207,208,209,210,225,250,275,299,300,301}){a.start(n);RenderCheck p=new RenderCheck();r.draw(p,a);ImageIO.write(p.image,"png",new File("verification/game-"+n+".png"));}
         a.screen="home";RenderCheck home=new RenderCheck();r.draw(home,a);ImageIO.write(home.image,"png",new File("verification/home.png"));
-        if(!"gift:claim".equals(r.hit(293,691)))throw new AssertionError("Gift claim control is missing");
-        if(!"play".equals(r.hit(200,510))||!"levels".equals(r.hit(100,615))||!"progress".equals(r.hit(285,615))||!"settings".equals(r.hit(365,36))||!"giftinfo".equals(r.hit(352,690)))throw new AssertionError("Approved menu artwork and live touch controls disagree");
+        if(!"gift:claim".equals(r.hit(234,691)))throw new AssertionError("Gift claim control is missing");
+        if(!"play".equals(r.hit(200,510))||!"levels".equals(r.hit(100,615))||!"progress".equals(r.hit(285,615))||!"settings".equals(r.hit(365,36))||!"ad:charge".equals(r.hit(322,690)))throw new AssertionError("Approved menu artwork and live touch controls disagree");
         a.action("progress");RenderCheck progress=new RenderCheck();r.draw(progress,a);ImageIO.write(progress.image,"png",new File("verification/progress.png"));if(!"levels".equals(r.hit(200,508)))throw new AssertionError("Progress screen is not functional");a.back();
         a.action("giftinfo");RenderCheck info=new RenderCheck();r.draw(info,a);ImageIO.write(info.image,"png",new File("verification/gift-info.png"));if(!"home".equals(r.hit(200,590)))throw new AssertionError("Gift information cannot return home");a.back();
         a.action("gift:claim");RenderCheck claimed=new RenderCheck();r.draw(claimed,a);ImageIO.write(claimed.image,"png",new File("verification/home-claimed.png"));
-        if(r.hit(293,691)!=null||a.gifts.charges()!=1)throw new AssertionError("Cooldown card must not claim again");
-        a.start(201);RenderCheck ready=new RenderCheck();r.draw(ready,a);if(r.hit(330,785)!=null)throw new AssertionError("Gift use must wait for launched ball");
+        if(r.hit(234,691)!=null||a.gifts.charges()!=1)throw new AssertionError("Cooldown card must not claim again");
+        a.start(201);RenderCheck ready=new RenderCheck();r.draw(ready,a);if(r.hit(268,785)!=null)throw new AssertionError("Gift use must wait for launched ball");
         a.game.launch();RenderCheck flying=new RenderCheck();r.draw(flying,a);ImageIO.write(flying.image,"png",new File("verification/gift-available.png"));
-        if(!"gift:use".equals(r.hit(330,785)))throw new AssertionError("Gift use control is missing");
-        if(!"speed4".equals(r.hit(250,785))||!"levels".equals(r.hit(60,785)))throw new AssertionError("Gift button overlaps existing controls");
+        if(!"gift:use".equals(r.hit(268,785)))throw new AssertionError("Gift use control is missing");
+        if(!"speed4".equals(r.hit(210,785))||!"levels".equals(r.hit(60,785)))throw new AssertionError("Gift button overlaps existing controls");
         a.action("gift:use");RenderCheck used=new RenderCheck();r.draw(used,a);ImageIO.write(used.image,"png",new File("verification/gift-used.png"));
-        if(r.hit(330,785)!=null||a.gifts.charges()!=0)throw new AssertionError("Spent gift remains actionable");
+        if(r.hit(268,785)!=null||a.gifts.charges()!=0)throw new AssertionError("Spent gift remains actionable");
         a.screen="home";a.stars[1]=3;a.stars[107]=2;RenderCheck saved=new RenderCheck();r.draw(saved,a);ImageIO.write(saved.image,"png",new File("verification/home-with-progress.png"));if(!"progress".equals(r.hit(50,36)))throw new AssertionError("Live stars counter has no progress action");
         for(int i=1;i<=Levels.COUNT;i++)a.stars[i]=3;RenderCheck full=new RenderCheck();r.draw(full,a);ImageIO.write(full.image,"png",new File("verification/home-complete.png"));if(a.totalStars()!=Levels.COUNT*3)throw new AssertionError("Wrong maximum star total");
         a.screen="settings";RenderCheck settings=new RenderCheck();r.draw(settings,a);ImageIO.write(settings.image,"png",new File("verification/settings.png"));
