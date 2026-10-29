@@ -1,36 +1,25 @@
 #!/usr/bin/env python3
-"""Build one non-debuggable release APK using the official Android SDK.
-Signing material is external to the repository; never generates a replacement key.
+"""Build the real Gradle dependency graph, then sign with the existing rotation lineage.
+Requires the two real BrickStorm ad unit IDs; never builds a demo production APK.
 """
-import os,subprocess,sys,zipfile,shutil
+import os,subprocess,shutil,hashlib
 from pathlib import Path
-root=Path(__file__).resolve().parent.parent
-os.chdir(root)
-sdk=Path(os.environ['ANDROID_JAR']);bt=Path(os.environ['BUILD_TOOLS']);key=Path(os.environ['BRICKSTORM_KEYSTORE'])
-alias=os.environ.get('BRICKSTORM_KEY_ALIAS','brickstorm');os.environ['BRICKSTORM_KEY_PASSWORD']
-out=root/'out/release';classes=out/'classes'
-if classes.exists():shutil.rmtree(classes)
-classes.mkdir(parents=True,exist_ok=True)
-def run(args):subprocess.run([str(v) for v in args],check=True)
-sources=sorted((root/'app/src/main/java').rglob('*.java'))
-run(['java','-m','jdk.compiler/com.sun.tools.javac.Main','-encoding','UTF-8','-source','17','-target','17','-classpath',sdk,'-d',classes,*sources])
-resources=out/'resources.zip'
-if resources.exists():resources.unlink()
-run([bt/'aapt2','compile','--no-crunch','--dir','app/src/main/res','-o',resources])
-manifest=(root/'app/src/main/AndroidManifest.xml').read_text().replace('<manifest ','<manifest package="pro.brickstorm.game" ',1)
-(out/'AndroidManifest.xml').write_text(manifest)
-run([bt/'aapt2','link','-o',out/'unsigned.apk','--manifest',out/'AndroidManifest.xml','-I',sdk,'--min-sdk-version','26','--target-sdk-version','35','--version-code','16','--version-name','1.13.0',out/'resources.zip'])
-(out/'classes.list').write_text('\n'.join(str(p) for p in classes.rglob('*.class')))
-run(['java','-cp',bt/'lib/d8.jar','com.android.tools.r8.D8','--lib',sdk,'--min-api','26','--output',out,'@'+str(out/'classes.list')])
-with zipfile.ZipFile(out/'unsigned.apk','a',zipfile.ZIP_DEFLATED) as z:z.write(out/'classes.dex','classes.dex')
-run([bt/'zipalign','-p','-f','4',out/'unsigned.apk',out/'aligned.apk'])
-args=['java','-jar',bt/'lib/apksigner.jar','sign','--debuggable-apk-permitted','false','--v4-signing-enabled','false']
+root=Path(__file__).resolve().parents[1];os.chdir(root)
+gradle=os.environ.get('BRICKSTORM_GRADLE','gradle')
+args=[gradle]
+if os.environ.get('BRICKSTORM_GRADLE_USER_HOME'):args+=['--gradle-user-home',os.environ['BRICKSTORM_GRADLE_USER_HOME']]
+args+=['--no-daemon',':app:assembleRelease',':app:lintRelease']
+subprocess.run(args,check=True)
+bt=Path(os.environ['BUILD_TOOLS']);out=root/'out/release';out.mkdir(parents=True,exist_ok=True)
+unsigned=root/'app/build/outputs/apk/release/app-release-unsigned.apk'
+if not unsigned.is_file():raise SystemExit('Gradle unsigned release APK missing')
+aligned=out/'aligned.apk';subprocess.run([str(bt/'zipalign'),'-P','16','-f','4',str(unsigned),str(aligned)],check=True)
+command=['java','-jar',str(bt/'lib/apksigner.jar'),'sign','--debuggable-apk-permitted','false','--v4-signing-enabled','false']
 old=os.environ.get('BRICKSTORM_PREVIOUS_KEYSTORE');lineage=os.environ.get('BRICKSTORM_LINEAGE')
-if old and lineage:
- args+=['--ks',old,'--ks-key-alias',os.environ.get('BRICKSTORM_PREVIOUS_ALIAS','test'),'--ks-pass','env:BRICKSTORM_PREVIOUS_PASSWORD','--next-signer']
-args+=['--ks',key,'--ks-key-alias',alias,'--ks-pass','env:BRICKSTORM_KEY_PASSWORD']
-if old and lineage:args+=['--lineage',lineage,'--rotation-min-sdk-version','28']
-apk=out/'BrickStorm-1.13.0.apk';args+=['--out',apk,out/'aligned.apk'];run(args)
-run(['java','-jar',bt/'lib/apksigner.jar','verify','--verbose','--print-certs',apk])
-run([bt/'aapt2','dump','badging',apk]);run([bt/'zipalign','-c','4',apk])
-print('RELEASE_APK:',apk)
+if old and lineage:command+=['--ks',old,'--ks-key-alias',os.environ.get('BRICKSTORM_PREVIOUS_ALIAS','test'),'--ks-pass','env:BRICKSTORM_PREVIOUS_PASSWORD','--next-signer']
+command+=['--ks',os.environ['BRICKSTORM_KEYSTORE'],'--ks-key-alias',os.environ.get('BRICKSTORM_KEY_ALIAS','brickstorm'),'--ks-pass','env:BRICKSTORM_KEY_PASSWORD']
+if old and lineage:command+=['--lineage',lineage,'--rotation-min-sdk-version','28']
+apk=out/'BrickStorm-1.14.0.apk';command+=['--out',str(apk),str(aligned)];subprocess.run(command,check=True)
+subprocess.run(['java','-jar',str(bt/'lib/apksigner.jar'),'verify','--verbose','--print-certs',str(apk)],check=True)
+subprocess.run([str(bt/'aapt2'),'dump','badging',str(apk)],check=True);subprocess.run([str(bt/'zipalign'),'-c','-P','16','4',str(apk)],check=True)
+print('RELEASE_APK:',apk);print('SHA256:',hashlib.sha256(apk.read_bytes()).hexdigest())

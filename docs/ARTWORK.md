@@ -5,7 +5,7 @@
 
 Final background prompt: “Extract/reconstruct ONLY the royal-blue arcade wallpaper. Keep deep cobalt blue, cyan diagonal light streaks and small luminous blue 3D cubes at left/right edges. Center 80% calm blue. Remove all UI, status/navigation bars, text, buttons, bricks, maze, frames, paddle, ball, scoreboard. No UI, text, logo or objects in center. Portrait 1:2.” Built-in ImageGen; no external image API.
 
-Both production assets are committed to the repository. The previous menu artwork is removed from the release. Both Android Canvas and the desktop verification renderer load these same files. No image-generation service or network request is used in the installed game.
+Both production assets are committed to the repository. The previous menu artwork is removed from the release. Both Android Canvas and the desktop verification renderer load these same files. Artwork requires no image-generation service or network request. From 1.14.0, advertising uses the separate Yandex Mobile Ads SDK.
 
 ## Approved orange icon — 1.13.0
 

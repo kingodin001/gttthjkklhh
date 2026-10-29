@@ -17,14 +17,15 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state){super.onCreate(state);getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);gameView=new GameView(this);setContentView(gameView);}
     @Override protected void onResume(){super.onResume();gameView.resume();}
     @Override protected void onPause(){gameView.pause();super.onPause();}
-    @Override protected void onDestroy(){gameView.audio.release();super.onDestroy();}
+    @Override protected void onDestroy(){gameView.adsHost.close();gameView.audio.release();super.onDestroy();}
     @Override public void onBackPressed(){gameView.model.back();gameView.invalidate();}
 
     static final class GameView extends View implements AppModel.Storage {
         final SharedPreferences prefs;final Audio audio;final AppModel model;final GameRenderer renderer=new GameRenderer();final AndroidPainter painter=new AndroidPainter();
+        YandexAdHost adsHost;
         final long rewardWallBase=System.currentTimeMillis(),rewardMonoBase=android.os.SystemClock.elapsedRealtime();
         private int insetTop,insetBottom,insetLeft,insetRight;private float scale=1,dx=0,dy=0;private long lastFrame=0;private boolean running;private String downAction;private int pointer=-1;
-        GameView(Context c){super(c);prefs=c.getSharedPreferences("campaign_v1",Context.MODE_PRIVATE);audio=new Audio(c);model=new AppModel(this);painter.loadArtwork(c);setFocusable(true);setContentDescription("Брикс Шторм. Арканоид. Управление касанием и движением пальца.");setLayerType(View.LAYER_TYPE_HARDWARE,null);
+        GameView(Context c){super(c);prefs=c.getSharedPreferences("campaign_v1",Context.MODE_PRIVATE);audio=new Audio(c);model=new AppModel(this);painter.loadArtwork(c);setFocusable(true);setContentDescription("Брикс Шторм. Арканоид. Управление касанием и движением пальца.");setLayerType(View.LAYER_TYPE_HARDWARE,null);adsHost=new YandexAdHost((Activity)c);model.ads=adsHost;try{adsHost.start();}catch(RuntimeException error){model.ads=AdsHost.NONE;}
             setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets i=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());insetTop=i.top;insetBottom=i.bottom;insetLeft=i.left;insetRight=i.right;}else{insetTop=insets.getSystemWindowInsetTop();insetBottom=insets.getSystemWindowInsetBottom();insetLeft=insets.getSystemWindowInsetLeft();insetRight=insets.getSystemWindowInsetRight();}invalidate();return insets;});
         }
         void resume(){running=true;lastFrame=0;postInvalidateOnAnimation();}
@@ -35,7 +36,7 @@ public final class MainActivity extends Activity {
             if(scale>0){canvas.save();canvas.translate(dx,dy);canvas.scale(scale,scale);canvas.clipRect(0,0,400,820);painter.canvas=canvas;renderer.draw(painter,model);canvas.restore();}if(running)postInvalidateOnAnimation();
         }
         @Override public boolean onTouchEvent(android.view.MotionEvent event){
-            int act=event.getActionMasked();if(act==android.view.MotionEvent.ACTION_DOWN){pointer=event.getPointerId(0);float x=(event.getX()-dx)/scale,y=(event.getY()-dy)/scale;downAction=renderer.hit(x,y);if(downAction==null&&model.screen.equals("game")&&y>140&&y<751)model.game.aim(x);return true;}
+            if(model.adBusy)return true;int act=event.getActionMasked();if(act==android.view.MotionEvent.ACTION_DOWN){pointer=event.getPointerId(0);float x=(event.getX()-dx)/scale,y=(event.getY()-dy)/scale;downAction=renderer.hit(x,y);if(downAction==null&&model.screen.equals("game")&&y>140&&y<751)model.game.aim(x);return true;}
             int index=event.findPointerIndex(pointer);if(index<0)return true;float x=(event.getX(index)-dx)/scale,y=(event.getY(index)-dy)/scale;
             if(act==android.view.MotionEvent.ACTION_MOVE){if(downAction==null&&model.screen.equals("game")&&y>140&&y<751)model.game.aim(x);return true;}
             if(act==android.view.MotionEvent.ACTION_UP||(act==android.view.MotionEvent.ACTION_POINTER_UP&&event.getPointerId(event.getActionIndex())==pointer)){
@@ -48,8 +49,16 @@ public final class MainActivity extends Activity {
         @Override public void put(String k,int value){prefs.edit().putInt(k,value).apply();}
         @Override public long nowSeconds(){return (rewardWallBase+android.os.SystemClock.elapsedRealtime()-rewardMonoBase)/1000L;}
         @Override public long getLong(String k,long fallback){return prefs.getLong(k,fallback);}
+        @Override public void putLong(String k,long value){prefs.edit().putLong(k,value).apply();}
+        @Override public void saveAdGate(boolean unlocked,int wins,long last,long seen){prefs.edit().putInt("ads_unlocked",unlocked?1:0).putInt("ads_wins",wins).putLong("ads_last",last).putLong("ads_seen",seen).commit();}
+        @Override public void saveRewardState(int stock,long lastSeen,long[] claims,long[] adClaims){
+            SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",stock).putLong("gift_last_seen",lastSeen);
+            for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);
+            for(int i=0;i<adClaims.length;i++)edit.putLong("gift_ad_claim_"+i,adClaims[i]);edit.commit();
+        }
         @Override public void saveGiftState(int stock,long lastSeen,long[] claims){SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",stock).putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);edit.commit();}
         @Override public void sound(int kind){audio.play(kind);}
+        @Override public void openPrivacy(){try{getContext().startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse("https://yandex.ru/legal/confidential/")));}catch(android.content.ActivityNotFoundException ignored){}}
     }
     static final class AndroidPainter implements Painter {
         Canvas canvas;final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);final RectF rect=new RectF();Bitmap board;Canvas boardCanvas;final Paint pixel=new Paint();int[] previous;Engine lastEngine;int lastLevel=-1;

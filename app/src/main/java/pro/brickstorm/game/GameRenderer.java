@@ -7,7 +7,7 @@ public final class GameRenderer {
     public static final class Button {public final float x,y,w,h;public final String action;Button(float x,float y,float w,float h,String a){this.x=x;this.y=y;this.w=w;this.h=h;action=a;}public boolean contains(float px,float py){return px>=x&&px<=x+w&&py>=y&&py<=y+h;}}
     public final ArrayList<Button> buttons=new ArrayList<>();private Painter p;private AppModel app;
     public String hit(float x,float y){for(int i=buttons.size()-1;i>=0;i--)if(buttons.get(i).contains(x,y))return buttons.get(i).action;return null;}
-    public void draw(Painter painter,AppModel model){p=painter;app=model;buttons.clear();background();switch(app.screen){case "home":home();break;case "levels":levels();break;case "settings":settings();break;case "progress":progress();break;case "giftinfo":giftInfo();break;default:game();break;}}
+    public void draw(Painter painter,AppModel model){p=painter;app=model;buttons.clear();background();switch(app.screen){case "home":home();break;case "levels":levels();break;case "settings":settings();break;case "progress":progress();break;case "giftinfo":giftInfo();break;case "rewards":rewards();break;case "adinfo":adInfo();break;default:game();break;}if(app.adBusy){buttons.clear();p.rect(0,0,400,820,0xde071b59,0);center("РЕКЛАМА",200,385,22,WHITE,true);center("Игра приостановлена",200,420,13,MUTED,false);}}
     private void background(){
         p.rect(0,0,400,820,BG,0);p.artwork(app.screen.equals("home"));
         // The playing field is unchanged. Only its surrounding wallpaper is new.
@@ -75,7 +75,45 @@ public final class GameRenderer {
         center("×3",200,217,48,GOLD,true);center("В запасе: "+app.gifts.charges()+" / 3",200,258,19,WHITE,true);
         String[] lines={"Новый подарок — через каждые 4 часа.","Не более 3 получений за любые 24 часа.","Можно хранить до 3 зарядов.","Используй кнопку ×3 после запуска шара.","Один заряд за попытку уровня.","Обычные выпадающие бонусы — без лимита."};
         for(int i=0;i<lines.length;i++)text(lines[i],40,308+i*31,12,MUTED,false);
-        button(40,567,320,52,"В главное меню","home",true);
+        if(app.gifts.canClaimAd())button(40,506,320,44,"Бонусы за рекламу  ▶","rewards",false);
+        else center("Заряды за рекламу: "+app.gifts.adClaimsLeft()+" / 3 доступны",200,534,11,MUTED,false);
+        button(40,587,320,52,"В главное меню","home",true);
+    }
+    private void adInfo(){
+        header("О рекламе","Рекламу предоставляет Рекламная сеть Яндекса.");
+        p.rect(24,145,352,380,0xf00a2866,18);
+        String[] lines={"Обычная реклама — между уровнями после 3-го.","Пауза между показами — не менее 180 секунд.","Бонусы за рекламу получаешь только по желанию.","Без сети можно продолжать обычную игру.","Сохранения и результаты хранятся на устройстве.","Яндекс обрабатывает технические данные", "для загрузки рекламы и измерения её показов.","Доступ к геолокации не запрашивается.","Реклама показывается без персонализации."};
+        for(int i=0;i<lines.length;i++)text(lines[i],40,185+i*34,11,MUTED,false);
+        button(40,552,320,50,"Политика Яндекса","privacy:open",false);
+        button(40,625,320,50,"В главное меню","home",true);
+    }
+    private void adButton(float y,String title,String kind){
+        if(app.rewardEligible(kind)&&app.ads.rewardedReady())button(40,y,320,48,title,"ad:"+kind,true);
+        else disabled(40,y,320,48,app.rewardEligible(kind)?"Реклама пока недоступна":kind.equals("charge")?"Запас полон или достигнут лимит":!app.hasSession||app.game.state==Engine.State.LOST||app.game.state==Engine.State.WON?"Доступно во время уровня":"Уже использовано в этой попытке");
+    }
+    private void rewards(){
+        header("Бонусы","Награда после просмотра рекламы — на выбор.");
+        p.rect(24,135,352,195,0xf00a2866,18);text("ЗАРЯД ×3",40,168,16,GOLD,true);
+        text("Утраивает все летящие шары по кнопке в игре.",40,196,11,MUTED,false);
+        text("В запасе: "+app.gifts.charges()+" / 3  ·  Ещё за 24 ч: "+app.gifts.adClaimsLeft(),40,225,12,WHITE,true);
+        adButton(251,"Получить заряд ×3  ▶","charge");
+        p.rect(24,352,352,190,0xf00a2866,18);text("ЗАЩИТНАЯ СТЕНА",40,387,16,CYAN,true);
+        text("Защищает снизу 10 секунд активной игры.",40,416,12,MUTED,false);
+        text("Один раз за попытку. Скорость ×4 не сокращает срок.",40,440,10,MUTED,false);
+        adButton(466,"Включить стену  ▶","shield");
+        if(!app.adMessage.isEmpty())center(app.adMessage,200,574,fit(app.adMessage,11,350),WHITE,false);
+        button(40,609,320,50,app.rewardReturn.equals("game")?"Вернуться в игру":"Назад","rewardback",false);
+        center("Если реклама недоступна, можно играть дальше",200,705,11,MUTED,false);
+    }
+    private void lostOverlay(){
+        buttons.clear();p.rect(0,0,400,820,0xd9294663,0);p.rect(20,210,360,465,PANEL,24);
+        center("ЕЩЁ ОДНА ПОПЫТКА?",200,267,20,WHITE,true);
+        center("Разрушено "+Math.round(app.game.progress()*100)+"% блоков",200,302,13,MUTED,false);
+        if(app.rewardEligible("revive")&&app.ads.rewardedReady())button(44,337,312,52,"Продолжить за рекламу  ▶","ad:revive",true);
+        else disabled(44,337,312,52,app.reviveUsed?"Продолжение уже использовано":"Реклама пока недоступна");
+        center("Вернётся 1 жизнь. Разбитые кирпичи сохранятся.",200,416,11,MUTED,false);
+        button(44,443,312,50,"Начать заново","retry",false);button(44,507,312,48,"Карта уровней","levels",false);button(44,569,312,44,"В главное меню","home",false);
+        if(!app.adMessage.isEmpty())center(app.adMessage,200,649,fit(app.adMessage,10,335),GOLD,false);
     }
     private void header(String title,String subtitle){button(20,20,92,44,"‹ Меню","home",false);text(title,128,49,22,WHITE,true);text(subtitle,24,105,12,MUTED,false);}
     private void levels(){
@@ -85,7 +123,7 @@ public final class GameRenderer {
         for(int j=0;j<AppModel.PAGE_SIZE;j++){
             int n=start+j;if(n>Levels.COUNT)break;Levels.Layout l=Levels.make(n);float x=24+(j%4)*90,y=205+(j/4)*119;boolean active=n==app.last;
             p.rect(x,y,82,110,active?GOLD:0xff52758e,12);p.rect(x+1,y+1,80,108,0xff214663,11);
-            text(String.format("%02d",n),x+7,y+17,12,active?GOLD:WHITE,true);
+            text(String.format(java.util.Locale.ROOT,"%02d",n),x+7,y+17,12,active?GOLD:WHITE,true);
             if(l.artistic())text("МОЗАИКА",x+30,y+16,6,0xffe1b6fa,true);
             // Runtime cells form the thumbnail; no invented promotional layout.
             float cell=1.04f,ox=x+8,oy=y+23;
@@ -113,11 +151,12 @@ public final class GameRenderer {
         String[] lines={"Веди пальцем по полю — платформа следует.","Коснись поля, чтобы запустить шар.","Лови круглые бонусы платформой.","Направляй шары через проходы в стенах.","Жёлтый ×3 размножает все летящие шары.","Бонус стены защищает снизу 6 секунд.","Скорость игры: ×1 / ×2 / ×4.","Побеждай — открывай новые уровни."};
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
         p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · "+Levels.COUNT+" уровень",42,697,12,WHITE,false);
-        center("Брикс Шторм  ·  1.13.0",200,795,11,MUTED,false);
+        button(24,739,352,38,"О рекламе и данных","adinfo",false);
+        center("Брикс Шторм  ·  1.14.0",200,795,11,MUTED,false);
     }
     private void game(){
-        Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format("%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");
-        text("СЧЁТ",18,101,9,MUTED,true);text(String.format("%,d",e.score).replace(',',' '),18,124,21,WHITE,true);
+        Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format(java.util.Locale.ROOT,"%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");
+        text("СЧЁТ",18,101,9,MUTED,true);text(String.format(java.util.Locale.ROOT,"%,d",e.score).replace(',',' '),18,124,21,WHITE,true);
         center("РАЗРУШЕНО",211,101,9,MUTED,true);center(Math.round(e.progress()*100)+"%",211,124,20,WHITE,true);
         text("ПОПЫТКИ",314,101,9,MUTED,true);for(int i=0;i<3;i++)p.circle(328+i*21,119,5,i<e.lives?0xffff8f9a:EDGE);
         p.rect(10,141,380,398,0x55203a50,8);
@@ -145,9 +184,9 @@ public final class GameRenderer {
             center("Веди пальцем, чтобы двигать платформу",200,642,10,MUTED,false);
             center("Угол отскока зависит от места удара о платформу",200,663,8,MUTED,false);
         }
-        if(e.shieldTime>0){
+        if(e.shieldTime>0||app.adShieldTime>0){
             p.rect(16,Engine.SHIELD_Y-2,368,8,0x335cefd7,4);p.rect(16,Engine.SHIELD_Y,368,4,0xffa1f0d9,2);
-            center("СТЕНА  "+(int)Math.ceil(e.shieldTime)+" с",200,Engine.SHIELD_Y-8,9,0xffa1f0d9,true);
+            center("СТЕНА  "+(int)Math.ceil(app.adShieldTime>0?app.adShieldTime:e.shieldTime)+" с",200,Engine.SHIELD_Y-8,9,0xffa1f0d9,true);
         }
         text("ШАРЫ  "+e.ballCountText(),18,565,10,MUTED,true);text(e.level.difficulty(),273,565,9,CYAN,true);
         if(e.noticeTime>0)center(e.notice,200,599,9,LIME,true);
@@ -157,9 +196,10 @@ public final class GameRenderer {
         if(app.canUseGift())button(282,766,102,40,giftLabel,"gift:use",true);else disabled(282,766,102,40,giftLabel);
         if(e.state==Engine.State.PAUSED)overlay("ПАУЗА","Уровень "+e.level.number+" · "+e.level.title(),"Продолжить","resume","Карта уровней","levels",false);
         else if(e.state==Engine.State.WON)overlay(e.level.number==Levels.COUNT?"ШТОРМ ПОКОРЁН":"УРОВЕНЬ ПРОЙДЕН","★ "+e.stars()+" / 3     ·     СЧЁТ "+e.score,e.level.number==Levels.COUNT?"Карта уровней":"Следующий уровень",e.level.number==Levels.COUNT?"levels":"next","Пройти ещё раз","retry",true);
-        else if(e.state==Engine.State.LOST)overlay("ЕЩЁ ОДНА ПОПЫТКА?","Разрушено "+Math.round(e.progress()*100)+"% блоков","Попробовать снова","retry","Карта уровней","levels",false);
+        else if(e.state==Engine.State.LOST)lostOverlay();
     }
     private void overlay(String title,String sub,String primary,String action,String second,String other,boolean success){
-        buttons.clear();p.rect(0,0,400,820,0xd9294663,0);p.rect(20,238,360,376,PANEL,24);center(success?"✦":"Ⅱ",200,298,40,success?LIME:CYAN,true);center(title,200,340,19,WHITE,true);center(sub,200,371,12,MUTED,false);button(44,401,312,52,primary,action,true);button(44,465,312,48,second,other,false);center("Прогресс уровня сохранится до закрытия игры",200,594,10,MUTED,false);button(44,529,312,44,"В главное меню","home",false);
+        buttons.clear();p.rect(0,0,400,820,0xd9294663,0);p.rect(20,app.game.state==Engine.State.PAUSED?205:238,360,app.game.state==Engine.State.PAUSED?480:376,PANEL,24);center(success?"✦":"Ⅱ",200,298,40,success?LIME:CYAN,true);center(title,200,340,19,WHITE,true);center(sub,200,371,12,MUTED,false);button(44,401,312,52,primary,action,true);button(44,465,312,48,second,other,false);center("Прогресс уровня сохранится до закрытия игры",200,app.game.state==Engine.State.PAUSED?657:594,10,MUTED,false);button(44,529,312,44,"В главное меню","home",false);
+        if(app.game.state==Engine.State.PAUSED)button(44,589,312,44,"Бонусы за рекламу  ▶","rewards",false);
     }
 }

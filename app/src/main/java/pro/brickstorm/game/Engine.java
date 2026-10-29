@@ -12,12 +12,18 @@ public final class Engine {
     public static final class Drop {public float x,y;public int kind;Drop(float x,float y,int k){this.x=x;this.y=y;kind=k;}}
     public final ArrayList<Ball> balls=new ArrayList<>();
     public final ArrayList<Drop> drops=new ArrayList<>();
+    public boolean adShield=false;
     public Levels.Layout level; public int[] cells; public State state=State.READY;
     public int remaining,lives=3,score=0,broken=0,combo=0;public float paddle=200,target=200,width=96,elapsed=0,wideTime=0,slowTime=0,shieldTime=0,comboTime=0;
     public String notice=""; public float noticeTime=0;
     public Events events; private State pausedFrom=State.PLAYING; private Random rng; private float accumulator=0;private float lastX=200,lastY=330;
     public Engine(Events e){events=e;load(1);}
-    public void load(int n){level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();rng=new Random(level.randomSeed());state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));}
+    public void load(int n){adShield=false;level=Levels.make(n);cells=level.cells.clone();remaining=level.blocks;balls.clear();drops.clear();rng=new Random(level.randomSeed());state=State.READY;width=level.paddleWidth;paddle=target=clamp(Levels.LEFT+(level.gateStart+level.gateEnd)*.5f*Levels.CELL,Levels.LEFT+width/2,Levels.RIGHT-width/2);lives=3;score=broken=combo=0;elapsed=wideTime=slowTime=shieldTime=comboTime=noticeTime=accumulator=0;notice="";balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));}
+    public boolean revive(){
+        if(state!=State.LOST)return false;
+        lives=1;state=State.READY;balls.clear();drops.clear();wideTime=slowTime=shieldTime=accumulator=0;width=level.paddleWidth;
+        balls.add(new Ball(serveX(),PADDLE_Y-8,0,0));return true;
+    }
     public void launch(){
         if(state!=State.READY)return;state=State.PLAYING;
         float angle=serveAngle();
@@ -63,7 +69,7 @@ public final class Engine {
             if(dx<0)boundary(h,(16+RADIUS-b.x)/dx,1,0);
             if(dx>0)boundary(h,(384-RADIUS-b.x)/dx,-1,0);
             if(dy<0)boundary(h,(146+RADIUS-b.y)/dy,0,1);
-            if(shieldTime>0&&dy>0&&b.y<=SHIELD_Y-RADIUS+.001f)boundary(h,(SHIELD_Y-RADIUS-b.y)/dy,0,-1);
+            if((shieldTime>0||adShield)&&dy>0&&b.y<=SHIELD_Y-RADIUS+.001f)boundary(h,(SHIELD_Y-RADIUS-b.y)/dy,0,-1);
             if(dy>0&&b.y<=PADDLE_Y-RADIUS+.001f){float t=(PADDLE_Y-RADIUS-b.y)/dy;float x=b.x+dx*t;
                 if(t>=0&&t<=1&&x>=paddle-width/2-RADIUS&&x<=paddle+width/2+RADIUS&&t<h.t){h.t=t;h.nx=0;h.ny=-1;h.cell=-1;h.paddle=true;}}
             for(int floor=0;floor<level.floorSegments.length;floor+=2){
