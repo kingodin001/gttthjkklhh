@@ -57,6 +57,7 @@ public final class MainActivity extends Activity {
             for(int i=0;i<adClaims.length;i++)edit.putLong("gift_ad_claim_"+i,adClaims[i]);edit.commit();
         }
         @Override public void saveGiftState(int stock,long lastSeen,long[] claims){SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",stock).putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);edit.commit();}
+        @Override public void saveChargeState(int freeStock,long adStock,long lastSeen,long[] claims){SharedPreferences.Editor edit=prefs.edit().putInt("gift_stock",freeStock).putLong("gift_ad_stock",adStock).putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)edit.putLong("gift_claim_"+i,claims[i]);edit.commit();}
         @Override public void sound(int kind){audio.play(kind);}
         @Override public void openPrivacy(){openDocument("https://games-api.vymi.pro/brickstorm/privacy/");}
         @Override public void openAdPrivacy(){openDocument("https://yandex.ru/legal/confidential/");}

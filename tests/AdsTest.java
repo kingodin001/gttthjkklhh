@@ -29,11 +29,11 @@ public final class AdsTest {
         AppModel restored=new AppModel(clock);check(!restored.adPolicy.eligible(),"Cooldown and victory count survive process restart");clock.now-=1000;check(!restored.adPolicy.eligible(),"Clock rollback cannot bypass cooldown");clock.now+=1000;
         Clock rc=new Clock();AppModel r=new AppModel(rc);Host rh=new Host();r.ads=rh;
         check(r.requestReward("charge")&&r.adBusy&&r.gifts.charges()==0,"Starting a rewarded ad never grants the bonus");rh.event.shown();rh.event.closed();check(r.gifts.charges()==0,"Closing without SDK reward grants nothing");
-        check(r.requestReward("charge"),"Retry a voluntarily requested ad");rh.event.shown();rh.event.rewarded();rh.event.rewarded();rh.event.closed();check(r.gifts.charges()==1&&r.gifts.adClaimsLeft()==2,"One confirmed view grants one charge despite duplicate callbacks");
+        check(r.requestReward("charge"),"Retry a voluntarily requested ad");rh.event.shown();rh.event.rewarded();rh.event.rewarded();rh.event.closed();check(r.gifts.charges()==1&&r.gifts.adCharges()==1,"One confirmed view grants one charge despite duplicate callbacks");
         check(r.gifts.canClaim(),"Ad reward does not consume the free four-hour gift");r.action("gift:claim");check(r.gifts.charges()==2,"Free and ad rewards share the same bank");
-        r.requestReward("charge");rh.watch();check(r.gifts.charges()==3&&!r.requestReward("charge"),"Do not show a charge ad when inventory is full");
-        r.gifts.spend();r.requestReward("charge");rh.watch();r.gifts.spend();check(r.gifts.adClaimsLeft()==0&&!r.requestReward("charge"),"Three charge rewards per rolling 24 hours");
-        AppModel quota=new AppModel(rc);check(quota.gifts.adClaimsLeft()==0&&quota.gifts.charges()==2,"Charge quota and inventory persist together");rc.now+=86400;check(quota.gifts.adClaimsLeft()==3,"Ad quota expires in a sliding 24-hour window");
+        r.requestReward("charge");rh.watch();check(r.gifts.charges()==3&&r.gifts.canClaimAd(),"Inventory of three never blocks an ad reward");
+        r.requestReward("charge");rh.watch();check(r.gifts.charges()==4&&r.gifts.adCharges()==3,"Another confirmed video grows inventory beyond three without waiting");
+        AppModel bank=new AppModel(rc);check(bank.gifts.charges()==4&&bank.gifts.canClaimAd(),"Unlimited advertising bank persists without a daily quota");
         Clock vc=new Clock();AppModel v=new AppModel(vc);Host vh=new Host();v.ads=vh;v.start(1);v.game.launch();v.game.cells[100]=0;v.game.score=123;v.game.broken=25;v.game.state=Engine.State.LOST;v.game.lives=0;v.giftUsed=true;
         int[] cells=v.game.cells.clone();check(v.requestReward("revive"),"Lost attempt may request one continuation");vh.watch();check(v.game.state==Engine.State.READY&&v.game.lives==1&&v.game.score==123&&Arrays.equals(cells,v.game.cells),"Continuation retains brick damage and score and waits for touch");
         check(v.reviveUsed&&v.giftUsed&&!v.requestReward("revive"),"Revival never resets gift usage or enables another revive");v.game.state=Engine.State.LOST;check(!v.requestReward("revive"),"Second loss cannot buy another continuation in the same attempt");
@@ -44,7 +44,7 @@ public final class AdsTest {
         for(int n=1;n<=3;n++){f.start(n);win(f);}f.action("next");check(f.game.level.number==4&&!f.adBusy,"Failed interstitial still transitions without blocking the player");
         fh.fail=false;f.action("home");f.requestReward("charge");EventsHolder old=new EventsHolder(fh.event);fh.event.shown();fh.event.closed();f.requestReward("charge");old.e.rewarded();check(f.gifts.charges()==0,"Old request cannot reward a later request");fh.watch();check(f.gifts.charges()==1,"Current request still rewards normally");
         check(!f.adPolicy.eligible(),"Voluntary video restarts ordinary-ad cooldown");
-        System.out.println("PASS: "+checks+" ad flow checks: 3rd victory, 2 wins AND 180 seconds, restart, callback idempotency, reward caps, continuation, shield physics and no-fill.");
+        System.out.println("PASS: "+checks+" ad flow checks: 3rd victory, 2 wins AND 180 seconds, restart, callback idempotency, unlimited charge rewards, continuation, shield physics and no-fill.");
     }
     static final class EventsHolder {final AdsHost.Events e;EventsHolder(AdsHost.Events e){this.e=e;}}
 }

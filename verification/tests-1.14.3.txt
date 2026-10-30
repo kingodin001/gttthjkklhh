@@ -1,0 +1,8 @@
+PASS: all 301 mazes have ONE connected brick field, 1–3 brick-facing windows {3: 101, 1: 100, 2: 100}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.
+PASS: 2752173 focused checks; 301 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks 2342..3616; physical multiball grows beyond 512, no weighted groups.
+PASS: 35 reward checks: cooldown, rolling daily cap, capacity, restart/upgrade, clocks, pause, all-ball multiplication, attempt limit and no-waste behavior.
+PASS: 2122 progression checks: locked starts, no skip, engine win events, replay, restart, sparse migration, gifts and final level.
+PASS: 5564 introductory level checks: first target, easier handling, 300 preserved difficulty/seeds/serves, save migration and sequential access.
+PASS: 49 ad flow checks: 3rd victory, 2 wins AND 180 seconds, restart, callback idempotency, unlimited charge rewards, continuation, shield physics and no-fill.
+PASS: 1035 direct-charge checks: home/free cooldown, real button-to-ad flow, live level preservation, all-ball ×3, pause, no-fill, unlimited 1000-view inventory, repeated use, restart and first/middle/final levels.
+PASS: 2013 unlimited-ad checks: 1000 same-day views, duplicate callbacks, migration, repeat use, independent free gifts, no-fill and 64-bit persistence.

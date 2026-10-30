@@ -9,6 +9,7 @@ public final class AppModel implements Engine.Events {
         default void putLong(String key,long value){put(key+"_hi",(int)(value>>>32));put(key+"_lo",(int)value);}
         default void saveGiftState(int stock,long lastSeen,long[] claims){put("gift_stock",stock);putLong("gift_last_seen",lastSeen);for(int i=0;i<claims.length;i++)putLong("gift_claim_"+i,claims[i]);}
         default void saveRewardState(int stock,long lastSeen,long[] claims,long[] adClaims){saveGiftState(stock,lastSeen,claims);for(int i=0;i<adClaims.length;i++)putLong("gift_ad_claim_"+i,adClaims[i]);}
+        default void saveChargeState(int freeStock,long adStock,long lastSeen,long[] claims){saveGiftState(freeStock,lastSeen,claims);putLong("gift_ad_stock",adStock);}
         default void saveAdGate(boolean unlocked,int wins,long last,long seen){put("ads_unlocked",unlocked?1:0);put("ads_wins",wins);putLong("ads_last",last);putLong("ads_seen",seen);}
     }
     public static final int PAGE_SIZE=16,PAGES=(Levels.COUNT+PAGE_SIZE-1)/PAGE_SIZE;
@@ -36,8 +37,8 @@ public final class AppModel implements Engine.Events {
     public int totalStars(){int sum=0;for(int i:stars)sum+=i;return sum;}
     public int completedCount(){int sum=0;for(int i:stars)if(i>0)sum++;return sum;}
     public void start(int n){if(adBusy||!isUnlocked(n))return;attempt++;last=n;storage.put("level_last_id",Levels.make(n).id());game.load(n);hasSession=true;speed=1;giftUsed=reviveUsed=shieldAdUsed=false;adShieldTime=0;adMessage="";screen="game";}
-    public boolean canUseGift(){return screen.equals("game")&&game.state==Engine.State.PLAYING&&!giftUsed&&gifts.charges()>0&&!game.balls.isEmpty()&&game.balls.size()<=Engine.MAX_BALLS/3;}
-    public boolean useGift(){if(!canUseGift()||!gifts.spend())return false;game.power(1);giftUsed=true;return true;}
+    public boolean canUseGift(){return screen.equals("game")&&game.state==Engine.State.PLAYING&&gifts.canSpend(!giftUsed)&&!game.balls.isEmpty()&&game.balls.size()<=Engine.MAX_BALLS/3;}
+    public boolean useGift(){if(!canUseGift())return false;boolean usingFree=!giftUsed&&gifts.freeCharges()>0;if(!gifts.spend(!giftUsed))return false;game.power(1);if(usingFree)giftUsed=true;return true;}
     public void tick(float dt){if(adBusy)return;game.adShield=adShieldTime>0;for(int i=0;i<speed;i++)game.update(dt);if(game.state==Engine.State.PLAYING)adShieldTime=Math.max(0,adShieldTime-Math.max(0,dt));game.adShield=adShieldTime>0;}
     public void action(String a){
         if(adBusy)return;

@@ -19,7 +19,7 @@ old=os.environ.get('BRICKSTORM_PREVIOUS_KEYSTORE');lineage=os.environ.get('BRICK
 if old and lineage:command+=['--ks',old,'--ks-key-alias',os.environ.get('BRICKSTORM_PREVIOUS_ALIAS','test'),'--ks-pass','env:BRICKSTORM_PREVIOUS_PASSWORD','--next-signer']
 command+=['--ks',os.environ['BRICKSTORM_KEYSTORE'],'--ks-key-alias',os.environ.get('BRICKSTORM_KEY_ALIAS','brickstorm'),'--ks-pass','env:BRICKSTORM_KEY_PASSWORD']
 if old and lineage:command+=['--lineage',lineage,'--rotation-min-sdk-version','28']
-apk=out/'BrickStorm-1.14.2.apk';command+=['--out',str(apk),str(aligned)];subprocess.run(command,check=True)
+apk=out/'BrickStorm-1.14.3.apk';command+=['--out',str(apk),str(aligned)];subprocess.run(command,check=True)
 subprocess.run(['java','-jar',str(bt/'lib/apksigner.jar'),'verify','--verbose','--print-certs',str(apk)],check=True)
 subprocess.run([str(bt/'aapt2'),'dump','badging',str(apk)],check=True);subprocess.run([str(bt/'zipalign'),'-c','-P','16','4',str(apk)],check=True)
 print('RELEASE_APK:',apk);print('SHA256:',hashlib.sha256(apk.read_bytes()).hexdigest())

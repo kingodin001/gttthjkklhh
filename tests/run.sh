@@ -15,3 +15,5 @@ java -m jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -cp out/classes -d
 java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.AdsTest
 java -m jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -cp out/classes -d out/classes tests/RenderCheck.java tests/AdsRenderCheck.java tests/DirectChargeTest.java
 java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.DirectChargeTest
+java -m jdk.compiler/com.sun.tools.javac.Main -encoding UTF-8 -cp out/classes -d out/classes tests/UnlimitedAdsTest.java
+java -Djava.awt.headless=true -cp out/classes pro.brickstorm.game.UnlimitedAdsTest

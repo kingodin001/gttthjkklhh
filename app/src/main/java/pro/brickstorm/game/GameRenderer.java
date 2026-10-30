@@ -18,13 +18,17 @@ public final class GameRenderer {
     private void center(String s,float x,float y,float size,int color,boolean bold){p.text(s,x,y,size,color,bold,true);}
     private float fit(String value,float size,float width){return size*Math.min(1,width/Math.max(1,p.textWidth(value,size,true)));}
     private void button(float x,float y,float w,float h,String label,String action,boolean primary){
+        button(x,y,w,h,label,action,primary,16);
+    }
+    private void button(float x,float y,float w,float h,String label,String action,boolean primary,float labelSize){
         p.rect(x,y+4,w,h,0x55102236,17);p.rect(x,y,w,h,primary?0xffe9b75e:0xff527a94,17);
         p.rect(x+1,y+1,w-2,h-3,primary?0xffffdb8a:0xf52a506d,16);
         p.rect(x+16,y+2,w-32,1,primary?0xaaffffff:0x707fcce9,0);
-        center(label,x+w/2,y+h/2+5,16,primary?0xff163449:WHITE,true);buttons.add(new Button(x,y,w,h,action));
+        center(label,x+w/2,y+h/2+5,labelSize,primary?0xff163449:WHITE,true);buttons.add(new Button(x,y,w,h,action));
     }
     private void icon(float x,float y,String label,String action){button(x,y,44,44,label,action,false);}
-    private void disabled(float x,float y,float w,float h,String label){p.rect(x,y,w,h,0xee23435c,13);center(label,x+w/2,y+h/2+4,13,0xffa8becd,true);}
+    private void disabled(float x,float y,float w,float h,String label){disabled(x,y,w,h,label,13);}
+    private void disabled(float x,float y,float w,float h,String label,float size){p.rect(x,y,w,h,0xee23435c,13);center(label,x+w/2,y+h/2+4,size,0xffa8becd,true);}
     private void brand(float x,float y){for(int k=0;k<6;k++)p.rect(x+(k%3)*8,y+(k/3)*8,6,6,k==5?CYAN:LIME,1);text("БРИКС ШТОРМ",x+32,y+14,13,WHITE,true);}
     /** Artwork is the exact approved composition. Touch regions share its coordinates.
      * Only changing values are overpainted; no sample score/timer is presented as live data. */
@@ -42,7 +46,7 @@ public final class GameRenderer {
         // Free gift and rewarded video are separate, directly accessible controls.
         p.rect(28,660,344,68,0xff5488eb,15);p.gradient(29,661,342,66,0xff153c88,0xff0a205d,14);
         for(int i=0;i<3;i++){float x=50+(i==1?12:i==2?24:0),y=696+(i==1?-15:0);p.circle(x,y,10,0xff74a8ff);p.circle(x-1,y-2,9,WHITE);}
-        text("Подарок ×3",91,684,13,WHITE,true);text("В запасе: "+app.gifts.charges()+" / 3",91,705,10,MUTED,true);
+        text("Подарок ×3",91,684,13,WHITE,true);String stock="В запасе: "+app.gifts.charges();text(stock,91,705,fit(stock,10,92),MUTED,true);
         if(app.gifts.canClaim()){
             p.rect(192,670,84,44,0xffcb6414,10);p.gradient(193,671,82,41,0xffffdc8a,0xffff9e28,9);
             center("БЕСПЛАТНО",234,684,7,0xff663207,true);center("ЗАБРАТЬ ×3",234,702,9,0xff552509,true);
@@ -50,7 +54,7 @@ public final class GameRenderer {
         }else{
             p.gradient(192,670,84,44,0xff214a89,0xff102b62,9);
             center("БЕСПЛАТНО",234,684,7,MUTED,true);
-            center(app.gifts.charges()==3?"ЗАПАС ПОЛОН":app.gifts.countdown(),234,702,9,MUTED,false);
+            center(app.gifts.freeCharges()==3?"ЗАПАС ПОЛОН":app.gifts.countdown(),234,702,9,MUTED,false);
         }
         chargeVideo(284,670,76,44);
         // Real completed count and stars replace the promotional 5/300 example.
@@ -63,14 +67,14 @@ public final class GameRenderer {
         String status=app.adMessage.isEmpty()?"Прогресс сохраняется автоматически":app.adMessage;
         center(status,200,797,fit(status,10,340),MUTED,false);
     }
-    /** The video affordance remains visible while loading or when the daily limit is reached. */
+    /** Every confirmed video may grant another charge, independently of free gift limits. */
     private void chargeVideo(float x,float y,float w,float h){
         boolean eligible=app.gifts.canClaimAd(),ready=app.ads.rewardedReady();
         p.rect(x,y,w,h,eligible&&ready?0xffffc451:0xff4c76be,10);
         p.gradient(x+1,y+1,w-2,h-2,eligible&&ready?0xffffdc88:0xff20477e,eligible&&ready?0xffffa02c:0xff102b59,9);
         int color=eligible&&ready?0xff552509:WHITE;
         center("▶ ×3",x+w/2,y+17,15,color,true);
-        String status=app.gifts.charges()==RewardBank.CAPACITY?"ЗАПАС ПОЛОН":app.gifts.adClaimsLeft()==0?app.gifts.adCountdown():ready?"ЗА РЕКЛАМУ":"ЗАГРУЖАЕТСЯ";
+        String status=ready?"ЗА РЕКЛАМУ":"ЗАГРУЖАЕТСЯ";
         center(status,x+w/2,y+h-8,fit(status,7,w-8),color,true);
         if(eligible)buttons.add(new Button(x,y,w,h,"ad:charge"));
     }
@@ -88,11 +92,10 @@ public final class GameRenderer {
     private void giftInfo(){
         header("Подарок ×3","Утраивает каждый летящий шар.");
         p.rect(24,146,352,390,0xf00a2866,20);
-        center("×3",200,217,48,GOLD,true);center("В запасе: "+app.gifts.charges()+" / 3",200,258,19,WHITE,true);
-        String[] lines={"Новый подарок — через каждые 4 часа.","Не более 3 получений за любые 24 часа.","Можно хранить до 3 зарядов.","Используй кнопку ×3 после запуска шара.","Один заряд за попытку уровня.","Обычные выпадающие бонусы — без лимита."};
+        center("×3",200,217,48,GOLD,true);String stock="В запасе: "+app.gifts.charges();center(stock,200,258,fit(stock,19,320),WHITE,true);
+        String[] lines={"Бесплатный подарок — каждые 4 часа.","Бесплатно: до 3 получений за 24 часа.","Запас бесплатных зарядов: до 3.","Бесплатный заряд — один за попытку.","За рекламу — без суточного лимита.","Рекламные заряды — без лимита за уровень."};
         for(int i=0;i<lines.length;i++)text(lines[i],40,308+i*31,12,MUTED,false);
         if(app.gifts.canClaimAd())button(40,506,320,44,"Бонусы за рекламу  ▶","rewards",false);
-        else center("Заряды за рекламу: "+app.gifts.adClaimsLeft()+" / 3 доступны",200,534,11,MUTED,false);
         button(40,587,320,52,"В главное меню","home",true);
     }
     private void adInfo(){
@@ -106,13 +109,13 @@ public final class GameRenderer {
     }
     private void adButton(float y,String title,String kind){
         if(app.rewardEligible(kind)&&app.ads.rewardedReady())button(40,y,320,48,title,"ad:"+kind,true);
-        else disabled(40,y,320,48,app.rewardEligible(kind)?"Реклама пока недоступна":kind.equals("charge")?"Запас полон или достигнут лимит":!app.hasSession||app.game.state==Engine.State.LOST||app.game.state==Engine.State.WON?"Доступно во время уровня":"Уже использовано в этой попытке");
+        else disabled(40,y,320,48,app.rewardEligible(kind)?"Реклама пока недоступна":!app.hasSession||app.game.state==Engine.State.LOST||app.game.state==Engine.State.WON?"Доступно во время уровня":"Уже использовано в этой попытке");
     }
     private void rewards(){
         header("Бонусы","Награда после просмотра рекламы — на выбор.");
         p.rect(24,135,352,195,0xf00a2866,18);text("ЗАРЯД ×3",40,168,16,GOLD,true);
         text("Утраивает все летящие шары по кнопке в игре.",40,196,11,MUTED,false);
-        text("В запасе: "+app.gifts.charges()+" / 3  ·  Ещё за 24 ч: "+app.gifts.adClaimsLeft(),40,225,12,WHITE,true);
+        String stock="В запасе: "+app.gifts.charges()+"  ·  За рекламу — без лимита";text(stock,40,225,fit(stock,12,320),WHITE,true);
         adButton(251,"Получить заряд ×3  ▶","charge");
         p.rect(24,352,352,190,0xf00a2866,18);text("ЗАЩИТНАЯ СТЕНА",40,387,16,CYAN,true);
         text("Защищает снизу 10 секунд активной игры.",40,416,12,MUTED,false);
@@ -169,7 +172,7 @@ public final class GameRenderer {
         for(int i=0;i<lines.length;i++)text(lines[i],24,419+i*26,13,MUTED,false);
         p.rect(24,636,352,91,PANEL,18);text("СОЗДАНО ДЛЯ КАСКАДОВ",42,665,11,LIME,true);text("Маршруты · отскоки · "+Levels.COUNT+" уровень",42,697,12,WHITE,false);
         button(24,739,352,38,"О рекламе и данных","adinfo",false);
-        center("Брикс Шторм  ·  1.14.2",200,795,11,MUTED,false);
+        center("Брикс Шторм  ·  1.14.3",200,795,11,MUTED,false);
     }
     private void game(){
         Engine e=app.game;button(16,17,88,44,"‹ Меню","home",false);center("УРОВЕНЬ "+String.format(java.util.Locale.ROOT,"%03d",e.level.number),200,39,11,CYAN,true);center(e.level.title(),200,64,fit(e.level.title(),18,180),WHITE,true);icon(340,17,e.state==Engine.State.PAUSED?"▶":"Ⅱ","pause");
@@ -209,8 +212,8 @@ public final class GameRenderer {
         if(e.noticeTime>0)center(e.notice,200,599,9,LIME,true);
         else if(e.state==Engine.State.READY)center(e.level.hint(),200,586,8,MUTED,false);
         p.line(16,750,384,750,EDGE,1);button(16,766,80,40,"Уровни","levels",false);button(102,766,38,40,"×1","speed1",app.speed==1);button(146,766,38,40,"×2","speed2",app.speed==2);button(190,766,38,40,"×4","speed4",app.speed==4);
-        String giftLabel=app.giftUsed?"×3  ✓":"×3 · "+app.gifts.charges();
-        if(app.canUseGift())button(234,766,68,40,giftLabel,"gift:use",true);else disabled(234,766,68,40,giftLabel);
+        String giftLabel=app.giftUsed&&app.gifts.adCharges()==0?"×3  ✓":"×3 · "+app.gifts.charges();
+        if(app.canUseGift())button(234,766,68,40,giftLabel,"gift:use",true,fit(giftLabel,16,56));else disabled(234,766,68,40,giftLabel,fit(giftLabel,13,56));
         chargeVideo(308,766,76,40);
         if(!app.adMessage.isEmpty())center(app.adMessage,200,817,fit(app.adMessage,8,360),MUTED,false);
         if(e.state==Engine.State.PAUSED)overlay("ПАУЗА","Уровень "+e.level.number+" · "+e.level.title(),"Продолжить","resume","Карта уровней","levels",false);
