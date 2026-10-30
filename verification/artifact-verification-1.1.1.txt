@@ -1,0 +1,7 @@
+PASS: removed mechanics, fields and labels are absent from release DEX.
+PASS: all five APK launcher icon densities contain the approved artwork.
+PASS: menu artwork remains embedded.
+PASS: release manifest has debuggable=false, versionCode=4 and versionName=1.1.1.
+PASS: store icon is an opaque 512x512 PNG.
+Engine regression tests passed: 200 unique reachable layouts; all four retained bonus kinds; wall faces/corners and gate crossings; session navigation and persistence.
+Physical device installation/play-through not performed in this environment.

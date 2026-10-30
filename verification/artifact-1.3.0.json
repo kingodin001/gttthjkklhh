@@ -1,0 +1,21 @@
+{
+  "apk": "BrickStorm-1.3.0.apk",
+  "bytes": 2339697,
+  "sha256": "4424f3145ffe000a05be419004984d3caadefc73ca43c34c244a341bd696bba4",
+  "applicationId": "pro.brickstorm.game",
+  "versionName": "1.3.0",
+  "versionCode": 6,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "levels": 58,
+  "puzzleLevels": 50,
+  "artLevels": 8,
+  "allLevelsAccessible": true,
+  "signatureApisVerified": [
+    26,
+    28,
+    35
+  ],
+  "physicalDeviceTested": false,
+  "manualCampaignPlaythrough": false
+}

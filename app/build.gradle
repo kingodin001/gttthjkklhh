@@ -1,0 +1,43 @@
+plugins { id 'com.android.application' }
+def adsConfig = new Properties()
+def configFile = rootProject.file('ads.properties')
+if (configFile.exists()) configFile.withInputStream { adsConfig.load(it) }
+def interstitialUnit = System.getenv('BRICKSTORM_INTERSTITIAL_ID') ?: adsConfig.getProperty('interstitial', '')
+def rewardedUnit = System.getenv('BRICKSTORM_REWARDED_ID') ?: adsConfig.getProperty('rewarded', '')
+android {
+    namespace 'pro.brickstorm.game'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'pro.brickstorm.game'
+        minSdk 26
+        targetSdk 35
+        versionCode 20
+        versionName '1.14.3'
+    }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    buildTypes {
+        debug {
+            buildConfigField 'String', 'INTERSTITIAL_AD_UNIT', '"demo-interstitial-yandex"'
+            buildConfigField 'String', 'REWARDED_AD_UNIT', '"demo-rewarded-yandex"'
+        }
+        release {
+            debuggable false; minifyEnabled false
+            buildConfigField 'String', 'INTERSTITIAL_AD_UNIT', '"' + interstitialUnit + '"'
+            buildConfigField 'String', 'REWARDED_AD_UNIT', '"' + rewardedUnit + '"'
+        }
+    }
+}
+
+dependencies { implementation 'com.yandex.android:mobileads:8.6.0' }
+// Never ship a demo placement or another app's placeholder as a production release.
+tasks.register('validateProductionAds') {
+    doLast {
+        [interstitial:interstitialUnit, rewarded:rewardedUnit].each { format, value ->
+            if (!value.matches('R-M-[0-9]+-[0-9]+')) throw new GradleException('Set the real BrickStorm ad unit: ' + format)
+        }
+        if (interstitialUnit == rewardedUnit) throw new GradleException('Ad formats require separate placements')
+        if (interstitialUnit.substring(0,interstitialUnit.lastIndexOf('-')) != rewardedUnit.substring(0,rewardedUnit.lastIndexOf('-'))) throw new GradleException('Both ad units must belong to the same BrickStorm application')
+    }
+}
+tasks.configureEach { if (name == 'preReleaseBuild') dependsOn 'validateProductionAds' }

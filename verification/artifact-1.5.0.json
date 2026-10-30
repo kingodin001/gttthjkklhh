@@ -1,0 +1,23 @@
+{
+  "apk": "BrickStorm-1.5.0.apk",
+  "bytes": 2347889,
+  "sha256": "de5525f340bfdb29114556ee6ac3c8b1b2754e892eae752c4d2d6764f1607694",
+  "applicationId": "pro.brickstorm.game",
+  "versionName": "1.5.0",
+  "versionCode": 8,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "routeLevels": 50,
+  "artLevels": 8,
+  "referenceLayouts": 2,
+  "entryWidths": [
+    5.5,
+    9.5
+  ],
+  "ballDiameter": 5,
+  "particles": false,
+  "comboPopup": false,
+  "progressGraph": false,
+  "physicalDeviceTested": false,
+  "fullPlaythrough": false
+}

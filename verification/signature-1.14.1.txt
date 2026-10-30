@@ -1,0 +1,18 @@
+API 26
+Signer #1 certificate DN: CN=BrickStorm Test, O=Development
+Signer #1 certificate SHA-256 digest: e81b35cee7a0f600e7c8fa78eac8f555c422082c37ee418c166b1f767eeaeb31
+Signer #1 certificate SHA-1 digest: 28aec19d4ac5287ca8ee288f4aef4238d8e19d25
+Signer #1 certificate MD5 digest: 7be1a83856f36a8627dc79e74a297297
+WARNING: APK Signature Scheme v2 signer #1: APK Signature Scheme v2 signer: 0 references unknown APK signature scheme ID: 3
+
+API 28
+Signer #1 certificate DN: CN=BrickStorm, OU=Android Release, O=BrickStorm
+Signer #1 certificate SHA-256 digest: ab3273da346a6ae43d8841906c817163fba165d491066ca5b346ea54d82b61f7
+Signer #1 certificate SHA-1 digest: 98e9075c0bd44cf07e8d86fdc0ed19b661d2843c
+Signer #1 certificate MD5 digest: 063e3e49c56f98dc651f5dc734165dc8
+
+API 35
+Signer #1 certificate DN: CN=BrickStorm, OU=Android Release, O=BrickStorm
+Signer #1 certificate SHA-256 digest: ab3273da346a6ae43d8841906c817163fba165d491066ca5b346ea54d82b61f7
+Signer #1 certificate SHA-1 digest: 98e9075c0bd44cf07e8d86fdc0ed19b661d2843c
+Signer #1 certificate MD5 digest: 063e3e49c56f98dc651f5dc734165dc8

@@ -1,0 +1,7 @@
+package: pro.brickstorm.game
+uses-permission: name='android.permission.INTERNET'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='com.google.android.gms.permission.AD_ID'
+permission: pro.brickstorm.game.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='pro.brickstorm.game.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+uses-permission: name='com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE'

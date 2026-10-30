@@ -1,0 +1,1 @@
+PASS: all 300 earned level cards are clickable across 19 pages; fresh install locks, sequential unlock, approved menu controls, live progress, gift stock/timer and shared renderer screenshots verified internally.

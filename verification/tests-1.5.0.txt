@@ -1,0 +1,3 @@
+PASS: 50 different route graphs, including two reference layouts; all 58 have exact 1–2-ball apertures, connected reachable bricks and no one-row wall pockets.
+PASS: 527352 focused checks; 58 selectable layouts, 50 different route graphs + eight mosaics; bricks 1074..3506; repeated yellow bonus x40 preserves exact count beyond trajectory budget.
+PASS: all 58 real level cards are clickable across 4 pages; shared renderer screenshots exported for internal visual inspection.

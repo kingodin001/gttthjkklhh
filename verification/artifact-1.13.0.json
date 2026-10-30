@@ -1,0 +1,30 @@
+{
+  "version": "1.13.0",
+  "versionCode": 16,
+  "package": "pro.brickstorm.game",
+  "minSdk": 26,
+  "targetSdk": 35,
+  "bytes": 3847117,
+  "sha256": "ff9e995770c8398f737e7fb211d3271082e6f383e946d81ed6ee0f8a2d9cff29",
+  "sameSigningCertificateAndLineage": true,
+  "signatureVerifiedApis": [
+    26,
+    28,
+    35
+  ],
+  "approvedOrangeIconPackagedAllDensities": true,
+  "storeIcon512Opaque": true,
+  "menuAndGameplayWallpaperUnchanged": true,
+  "newIntroId": 20301,
+  "levelCount": 301,
+  "previous300RecordsUnchangedExceptPosition": true,
+  "previousHandlingSeedsAndStarterBallsVerified": true,
+  "defaultIntroTargetHitWithin2Seconds": true,
+  "sequentialUnlockAndStableIdMigrationVerified": true,
+  "automatedChecksPassed": true,
+  "sharedRendererVisuallyReviewed": true,
+  "physicalDeviceTested": false,
+  "emulatorTested": false,
+  "fullPlaythrough": false,
+  "publishedToRuStore": false
+}

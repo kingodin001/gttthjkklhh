@@ -1,0 +1,25 @@
+{
+  "version": "1.10.0",
+  "versionCode": 13,
+  "package": "pro.brickstorm.game",
+  "minSdk": 26,
+  "targetSdk": 35,
+  "sha256": "80435387a10d082de41a4be57d67235579cfb275e8fb9136ba966144057b226e",
+  "bytes": 2458481,
+  "levels": 300,
+  "retainedLevels": 200,
+  "newLevels": 100,
+  "brickRegionsPerLevel": 1,
+  "oneBlockEntries": 225,
+  "twoBlockEntries": 75,
+  "gifts": {
+    "cooldownSeconds": 14400,
+    "maxClaimsPerRolling24Hours": 3,
+    "inventoryCapacity": 3,
+    "usesPerAttempt": 1
+  },
+  "stableProgressFrom": "1.9.0",
+  "physicalDeviceTested": false,
+  "fullCampaignPlaythrough": false,
+  "publishedToRuStore": false
+}

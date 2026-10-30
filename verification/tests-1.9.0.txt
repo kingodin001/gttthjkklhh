@@ -1,0 +1,3 @@
+PASS: all 200 mazes have ONE connected brick field, 1–3 brick-facing windows {1: 67, 2: 67, 3: 66}, exact 1–2-block inlets, connected tunnels, and no sealed or isolated brick islands.
+PASS: 1828158 focused checks; 200 connected brick fields, 1–2-block inlets, and 1–3 brick ports; bricks 2342..3297; physical multiball grows beyond 512, no weighted groups.
+PASS: all 200 real level cards are clickable across 13 pages; shared renderer inspected, including the reported level 16. APK signatures verified for API 26, 28, 35.

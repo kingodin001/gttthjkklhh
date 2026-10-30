@@ -1,0 +1,3 @@
+PASS: 50 ad flow checks: 3rd victory, 2 wins AND 180 seconds, restart, callback idempotency, reward caps, continuation, shield physics and no-fill.
+PASS: reward, continuation, used/disabled/no-fill, privacy and ad input-blocking controls; shared Android layout rendered.
+PASS: 23 direct-charge checks: home/free cooldown, real button-to-ad flow, live level preservation, all-ball ×3, pause, no-fill, stock, daily timer, restart and first/middle/final levels.

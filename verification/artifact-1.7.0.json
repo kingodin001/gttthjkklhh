@@ -1,0 +1,17 @@
+{
+  "apk": "BrickStorm-1.7.0.apk",
+  "bytes": 2454385,
+  "sha256": "072e39890ee724258bb7fb914940f6cb4a80d75c707aa1f8c2bf8fc5449f4c29",
+  "applicationId": "pro.brickstorm.game",
+  "versionName": "1.7.0",
+  "versionCode": 10,
+  "minSdk": 26,
+  "targetSdk": 35,
+  "levels": 300,
+  "retainedLevels": 76,
+  "newVariants": 224,
+  "maxPhysicalBalls": 8192,
+  "weightedGroups": false,
+  "physicalDeviceTested": false,
+  "fullPlaythrough": false
+}

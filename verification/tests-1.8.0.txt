@@ -1,0 +1,3 @@
+PASS: 200 unique enclosed mazes, 25 route families, 1–3 actual brick-facing windows {1: 31, 2: 80, 3: 89}; no other exposed bricks, closed top/sides, connected ball-width routes and all bricks structurally reachable.
+PASS: 1829993 focused checks; 200 selectable double-banked mazes with 1–3 brick ports; bricks 2327..3297; physical multiball grows beyond 512, no weighted groups.
+PASS: all 200 real level cards are clickable across 13 pages; shared renderer screenshots inspected. APK signatures verified for API 26, 28, 35.

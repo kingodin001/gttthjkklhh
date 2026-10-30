@@ -1,0 +1,1 @@
+PASS: 23 direct-charge checks: home/free cooldown, real button-to-ad flow, live level preservation, all-ball ×3, pause, no-fill, stock, daily timer, restart and first/middle/final levels.
